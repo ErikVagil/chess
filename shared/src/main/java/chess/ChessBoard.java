@@ -141,7 +141,8 @@ public class ChessBoard {
         ChessBoard other = (ChessBoard)o;
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
-                if (!this.layout[i][j].equals(other.getPiece(new ChessPosition(i + 1, j + 1)))) {
+                if (this.layout[i][j] != null && 
+                    !this.layout[i][j].equals(other.getPiece(new ChessPosition(i + 1, j + 1)))) {
                     return false;
                 }
             }
