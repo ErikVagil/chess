@@ -43,4 +43,26 @@ public class ChessPosition {
         output.append(")");
         return output.toString();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        // Check if other object is this object
+        if (o == this) {
+            return true;
+        }
+
+        // Check if other object is a ChessPosition
+        if (!(o instanceof ChessPosition)) {
+            return false;
+        }
+
+        // Check if instance variables have the same values
+        ChessPosition other = (ChessPosition)o;
+        if (this.row == other.getRow() && this.col == other.getColumn()) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 }

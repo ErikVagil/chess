@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Collection;
+import java.util.HashSet;
 
 /**
  * Represents a single chess piece
@@ -51,6 +52,45 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        throw new RuntimeException("Not implemented");
+        HashSet<ChessMove> moveSet = new HashSet<ChessMove>();
+        switch (this.type) {
+            case PieceType.KING:
+                break;
+            case PieceType.QUEEN:
+                break;
+            case PieceType.BISHOP:
+                break;
+            case PieceType.KNIGHT:
+                break;
+            case PieceType.ROOK:
+                break;
+            case PieceType.PAWN:
+                break;
+            default:
+                throw new RuntimeException("Piece type does not exist");
+        }
+        return moveSet;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        // Check if other object is this object
+        if (o == this) {
+            return true;
+        }
+
+        // Check if other object is a ChessPiece
+        if (!(o instanceof ChessPiece)) {
+            return false;
+        }
+
+        // Check if instance variables have the same values
+        ChessPiece other = (ChessPiece)o;
+        if (this.color == other.getTeamColor() && this.type == other.getPieceType()) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 }

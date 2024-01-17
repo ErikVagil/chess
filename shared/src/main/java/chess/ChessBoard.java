@@ -124,4 +124,28 @@ public class ChessBoard {
         }
         return output.toString();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        // Check if other object is this object
+        if (o == this) {
+            return true;
+        }
+
+        // Check if other object is a ChessBoard
+        if (!(o instanceof ChessBoard)) {
+            return false;
+        }
+
+        // Check if ChessPieces on ChessBoards are the same
+        ChessBoard other = (ChessBoard)o;
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (!this.layout[i][j].equals(other.getPiece(new ChessPosition(i + 1, j + 1)))) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 }

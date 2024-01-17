@@ -55,4 +55,28 @@ public class ChessMove {
         output.append(")");
         return output.toString();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        // Check if other object is this object
+        if (o == this) {
+            return true;
+        }
+
+        // Check if other object is a ChessMove
+        if (!(o instanceof ChessMove)) {
+            return false;
+        }
+
+        // Check if instance variables have the same values
+        ChessMove other = (ChessMove)o;
+        if (this.start.equals(other.getStartPosition()) && 
+            this.end.equals(other.getEndPosition()) && 
+            this.promoPieceType == other.getPromotionPiece()) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 }
