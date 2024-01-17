@@ -1,5 +1,7 @@
 package chess;
 
+import java.lang.StringBuilder;
+
 /**
  * Represents moving a chess piece on a chessboard
  * <p>
@@ -39,5 +41,18 @@ public class ChessMove {
      */
     public ChessPiece.PieceType getPromotionPiece() {
         return this.promoPieceType;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder output = new StringBuilder();
+        output.append("ChessMove(");
+        output.append(this.start);
+        output.append(", ");
+        output.append(this.end);
+        output.append(", ");
+        output.append(this.promoPieceType);
+        output.append(")");
+        return output.toString();
     }
 }
