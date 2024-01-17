@@ -10,13 +10,18 @@ import java.lang.StringBuilder;
  */
 public class ChessMove {
     private ChessPosition start, end;
-    private ChessPiece.PieceType promoPieceType;
+    private ChessPiece.PieceType promoPieceType = null;
 
     public ChessMove(ChessPosition startPosition, ChessPosition endPosition,
                      ChessPiece.PieceType promotionPiece) {
         this.start = startPosition;
         this.end = endPosition;
         this.promoPieceType = promotionPiece;
+    }
+
+    public ChessMove(ChessPosition startPosition, ChessPosition endPosition) {
+        this.start = startPosition;
+        this.end = endPosition;
     }
 
     /**
