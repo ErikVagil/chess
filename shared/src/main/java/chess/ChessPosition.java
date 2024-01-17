@@ -65,4 +65,12 @@ public class ChessPosition {
             return false;
         }
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 31 * hash + this.row;
+        hash = 31 * hash + this.col;
+        return hash;
+    }
 }

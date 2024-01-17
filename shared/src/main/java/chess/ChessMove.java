@@ -79,4 +79,13 @@ public class ChessMove {
             return false;
         }
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 31 * hash + this.start.hashCode();
+        hash = 31 * hash + this.end.hashCode();
+        if (this.promoPieceType != null) hash = 31 * hash + this.promoPieceType.hashCode();
+        return hash;
+    }
 }
