@@ -62,7 +62,7 @@ public class ChessPiece {
                 moveList = new QueenCalculator().pieceMoves(board, myPosition);
                 break;
             case PieceType.BISHOP:
-                moveList = new BishopCalculator().pieceMoves(board, myPosition);
+                moveList = new BishopCalculator(this.color).pieceMoves(board, myPosition);
                 break;
             case PieceType.KNIGHT:
                 moveList = new KnightCalculator().pieceMoves(board, myPosition);
