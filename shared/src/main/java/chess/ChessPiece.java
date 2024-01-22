@@ -2,6 +2,7 @@ package chess;
 
 import java.util.Collection;
 import java.util.HashSet;
+import chess.pieces.*;
 
 /**
  * Represents a single chess piece
@@ -52,24 +53,30 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        HashSet<ChessMove> moveSet = new HashSet<ChessMove>();
+        Collection<ChessMove> moveList = new HashSet<ChessMove>();
         switch (this.type) {
             case PieceType.KING:
+                moveList = new KingCalculator().pieceMoves(board, myPosition);
                 break;
             case PieceType.QUEEN:
+                moveList = new QueenCalculator().pieceMoves(board, myPosition);
                 break;
             case PieceType.BISHOP:
+                moveList = new BishopCalculator().pieceMoves(board, myPosition);
                 break;
             case PieceType.KNIGHT:
+                moveList = new KnightCalculator().pieceMoves(board, myPosition);
                 break;
             case PieceType.ROOK:
+                moveList = new RookCalculator().pieceMoves(board, myPosition);
                 break;
             case PieceType.PAWN:
+                moveList = new PawnCalculator().pieceMoves(board, myPosition);
                 break;
             default:
                 throw new RuntimeException("Piece type does not exist");
         }
-        return moveSet;
+        return moveList;
     }
 
     @Override
