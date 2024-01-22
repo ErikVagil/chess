@@ -56,7 +56,7 @@ public class ChessPiece {
         Collection<ChessMove> moveList = new HashSet<ChessMove>();
         switch (this.type) {
             case PieceType.KING:
-                moveList = new KingCalculator().pieceMoves(board, myPosition);
+                moveList = new KingCalculator(this.color).pieceMoves(board, myPosition);
                 break;
             case PieceType.QUEEN:
                 moveList = new QueenCalculator().pieceMoves(board, myPosition);
