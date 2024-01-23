@@ -34,24 +34,24 @@ public class RookCalculator implements Calculator {
         return moveList;
     }
 
-    private Collection<ChessMove> directionMoves(ChessBoard board, ChessPosition myPosition, int directionX, int directionY) {
+    private Collection<ChessMove> directionMoves(ChessBoard board, ChessPosition myPosition, int directionCol, int directionRow) {
         Collection<ChessMove> moveList = new HashSet<ChessMove>();
-        int x = myPosition.getRow();
-        int y = myPosition.getColumn();
+        int row = myPosition.getRow();
+        int col = myPosition.getColumn();
 
-        int offsetX = 0;
-        int offsetY = 0;
+        int offsetCol = 0;
+        int offsetRow = 0;
         while (true) {
-            offsetX += directionX;
-            offsetY += directionY;
+            offsetCol += directionCol;
+            offsetRow += directionRow;
 
             // Check for bounds
-            if ((x + offsetX > 8 || x + offsetX < 1) || (y + offsetY > 8 || y + offsetY < 1)) {
+            if ((col + offsetCol > 8 || col + offsetCol < 1) || (row + offsetRow > 8 || row + offsetRow < 1)) {
                 break;
             }
 
             // Check for empty space
-            ChessPosition endPosition = new ChessPosition(x + offsetX, y + offsetY);
+            ChessPosition endPosition = new ChessPosition(row + offsetRow, col + offsetCol);
             ChessPiece otherPiece = board.getPiece(endPosition);
             if (otherPiece == null) {
                 // Empty space

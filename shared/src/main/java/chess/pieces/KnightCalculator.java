@@ -54,17 +54,17 @@ public class KnightCalculator implements Calculator {
         return moveList;
     }
 
-    private ChessMove moveInDirection(ChessBoard board, ChessPosition myPosition, int directionX, int directionY) {
-        int x = myPosition.getRow();
-        int y = myPosition.getColumn();
+    private ChessMove moveInDirection(ChessBoard board, ChessPosition myPosition, int directionCol, int directionRow) {
+        int row = myPosition.getRow();
+        int col = myPosition.getColumn();
 
         // Check for bounds
-        if ((x + directionX > 8 || x + directionX < 1) || (y + directionY > 8 || y + directionY < 1)) {
+        if ((col + directionCol > 8 || col + directionCol < 1) || (row + directionRow > 8 || row + directionRow < 1)) {
             return null;
         }
 
         // Check for empty space
-        ChessPosition endPosition = new ChessPosition(x + directionX, y + directionY);
+        ChessPosition endPosition = new ChessPosition(row + directionRow, col + directionCol);
         ChessPiece otherPiece = board.getPiece(endPosition);
         if (otherPiece == null) {
             // Empty space
