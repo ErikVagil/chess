@@ -68,7 +68,7 @@ public class ChessPiece {
                 moveList = new KnightCalculator(this.color).pieceMoves(board, myPosition);
                 break;
             case PieceType.ROOK:
-                moveList = new RookCalculator().pieceMoves(board, myPosition);
+                moveList = new RookCalculator(this.color).pieceMoves(board, myPosition);
                 break;
             case PieceType.PAWN:
                 moveList = new PawnCalculator().pieceMoves(board, myPosition);
