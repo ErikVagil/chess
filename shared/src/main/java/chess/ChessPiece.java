@@ -71,7 +71,7 @@ public class ChessPiece {
                 moveList = new RookCalculator(this.color).pieceMoves(board, myPosition);
                 break;
             case PieceType.PAWN:
-                moveList = new PawnCalculator().pieceMoves(board, myPosition);
+                moveList = new PawnCalculator(this.color).pieceMoves(board, myPosition);
                 break;
             default:
                 throw new RuntimeException("Piece type does not exist");
