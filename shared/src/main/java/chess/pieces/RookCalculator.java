@@ -9,7 +9,7 @@ import chess.ChessMove;
 import chess.ChessPiece;
 import chess.ChessPosition;
 
-public class RookCalculator {
+public class RookCalculator implements Calculator {
     private ChessGame.TeamColor color;
 
     public RookCalculator(ChessGame.TeamColor pieceColor) {

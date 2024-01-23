@@ -9,7 +9,7 @@ import chess.ChessMove;
 import chess.ChessPiece;
 import chess.ChessPosition;
 
-public class KnightCalculator {
+public class KnightCalculator implements Calculator {
     private ChessGame.TeamColor color;
 
     public KnightCalculator(ChessGame.TeamColor pieceColor) {
