@@ -25,9 +25,9 @@ public class ChessBoard {
      * @param piece    the piece to add
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
-        int x = position.getRow() - 1;
-        int y = position.getColumn() - 1;
-        this.layout[x][y] = piece;
+        int row = position.getRow() - 1;
+        int col = position.getColumn() - 1;
+        this.layout[row][col] = piece;
     }
 
     /**
@@ -38,9 +38,9 @@ public class ChessBoard {
      * position
      */
     public ChessPiece getPiece(ChessPosition position) {
-        int x = position.getRow() - 1;
-        int y = position.getColumn() - 1;
-        ChessPiece pieceAtPosition = this.layout[x][y];
+        int row = position.getRow() - 1;
+        int col = position.getColumn() - 1;
+        ChessPiece pieceAtPosition = this.layout[row][col];
         return pieceAtPosition;
     }
 
