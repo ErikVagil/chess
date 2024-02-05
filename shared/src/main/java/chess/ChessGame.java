@@ -63,7 +63,8 @@ public class ChessGame {
         for (int row = 1; row <= 8; row++) {
             for (int col = 1; col <= 8; col++) {
                 ChessPiece testPiece = this.board.getPiece(new ChessPosition(row, col));
-                if (testPiece.getPieceType() == PieceType.KING &&
+                if (testPiece != null &&
+                    testPiece.getPieceType() == PieceType.KING &&
                     testPiece.getTeamColor() == piece.getTeamColor()) {
                     kingPosition = new ChessPosition(row, col);
                     break;
