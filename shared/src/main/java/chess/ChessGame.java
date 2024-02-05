@@ -200,7 +200,13 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        // Team is not in check
+        if (this.isInCheck(teamColor)) return false;
+
+        // King has no valid moves
+        ChessPosition kingPosition = this.findKingPosition(this.board, teamColor);
+        if (this.validMoves(kingPosition).size() == 0) return true;
+        else return false;
     }
 
     /**
