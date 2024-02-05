@@ -108,7 +108,7 @@ public class ChessGame {
 
         // Remove all illegal moves from the movelist
         moveList.removeAll(illegalMoves);
-        
+
         return moveList;
     }
 
@@ -119,7 +119,17 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        throw new RuntimeException("Not implemented");
+        ChessPosition start = move.getStartPosition();
+        ChessPosition end = move.getEndPosition();
+        ChessPiece pieceToMove = this.board.getPiece(move.getStartPosition());
+        Collection<ChessMove> validMoveList = this.validMoves(move.getStartPosition());
+
+        if (!validMoveList.contains(move)) {
+            throw new InvalidMoveException("Illegal move passed into function");
+        }
+
+        this.board.addPiece(start, null);
+        this.board.addPiece(end, pieceToMove);
     }
 
     /**
