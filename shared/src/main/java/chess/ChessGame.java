@@ -58,18 +58,20 @@ public class ChessGame {
         }
         Collection<ChessMove> moveList = piece.pieceMoves(this.board, startPosition);
 
-        // Find the king's position on the board
-        ChessPosition kingPosition = this.findKingPosition(piece.getTeamColor());
-        
         /* Iterate through each move and simulate it -> check if making that move gives
-            any enemy pieces an opening to the king */
+        any enemy pieces an opening to the king */
         HashSet<ChessMove> illegalMoves = new HashSet<>();
         for (ChessMove move : moveList) {
             boolean foundConflictingMove = false;
             ChessBoard simulatedBoard = this.board.clone();
+
             // Make the move
             simulatedBoard.addPiece(move.getStartPosition(), null);
             simulatedBoard.addPiece(move.getEndPosition(), piece);
+
+            // Find the king's position on the board
+            // Done in the loop so that the method works for checking if the king can move
+            ChessPosition kingPosition = this.findKingPosition(simulatedBoard, piece.getTeamColor());
             for (int row = 1; row <= 8; row++) {
                 for (int col = 1; col <= 8; col++) {
                     /* Find an enemy piece and get all of the moves it can make after the original piece
@@ -147,7 +149,7 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        ChessPosition kingPosition = this.findKingPosition(teamColor);
+        ChessPosition kingPosition = this.findKingPosition(this.board, teamColor);
 
         // Check opposite color pieces' moves
         for (int row = 1; row <= 8; row++) {
@@ -181,7 +183,13 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        // Team is in check
+        if (!this.isInCheck(teamColor)) return false;
+
+        // King has no valid moves
+        ChessPosition kingPosition = this.findKingPosition(this.board, teamColor);
+        if (this.validMoves(kingPosition).size() == 0) return true;
+        else return false;
     }
 
     /**
@@ -220,11 +228,11 @@ public class ChessGame {
      * @param teamColor the color of the team whose king needs to be found
      * @return the position of the king
      */
-    private ChessPosition findKingPosition(TeamColor teamColor) {
+    private ChessPosition findKingPosition(ChessBoard board, TeamColor teamColor) {
         ChessPosition kingPosition = null;
         for (int row = 1; row <= 8; row++) {
             for (int col = 1; col <= 8; col++) {
-                ChessPiece testPiece = this.board.getPiece(new ChessPosition(row, col));
+                ChessPiece testPiece = board.getPiece(new ChessPosition(row, col));
                 if (testPiece != null &&
                     testPiece.getPieceType() == PieceType.KING &&
                     testPiece.getTeamColor() == teamColor) {
