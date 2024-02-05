@@ -1,6 +1,9 @@
 package chess;
 
 import java.util.Collection;
+import java.util.HashSet;
+
+import chess.ChessPiece.PieceType;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -48,7 +51,65 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+        // Get piece at startPosition and all of its moves
+        ChessPiece piece = this.board.getPiece(startPosition);
+        if (piece == null) {
+            return null;
+        }
+        Collection<ChessMove> moveList = piece.pieceMoves(this.board, startPosition);
+
+        // Find the king's position on the board
+        ChessPosition kingPosition = null;
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPiece testPiece = this.board.getPiece(new ChessPosition(row, col));
+                if (testPiece.getPieceType() == PieceType.KING &&
+                    testPiece.getTeamColor() == piece.getTeamColor()) {
+                    kingPosition = new ChessPosition(row, col);
+                    break;
+                }
+            }
+        } 
+        
+        // Iterate through each move and simulate it -> check if making that move gives
+        //  any enemy pieces an opening to the king
+        HashSet<ChessMove> illegalMoves = new HashSet<>();
+        for (ChessMove move : moveList) {
+            boolean foundConflictingMove = false;
+            ChessBoard simulatedBoard = this.board.clone();
+            // Make the move
+            simulatedBoard.addPiece(move.getStartPosition(), null);
+            simulatedBoard.addPiece(move.getEndPosition(), piece);
+            for (int row = 1; row <= 8; row++) {
+                for (int col = 1; col <= 8; col++) {
+                    // Find an enemy piece and get all of the moves it can make after the original piece
+                    //  simulates its move
+                    ChessPosition testPosition = new ChessPosition(row, col);
+                    ChessPiece enemyPiece = simulatedBoard.getPiece(testPosition);
+                    if (enemyPiece != null && 
+                        enemyPiece.getTeamColor() != piece.getTeamColor()) {
+                        Collection<ChessMove> enemyMoves = enemyPiece.pieceMoves(simulatedBoard, testPosition);
+                        for (ChessMove enemyMove : enemyMoves) {
+                            // If the enemy piece can capture the king, then the move the original piece wants
+                            //  to make is illegal
+                            if (enemyMove.getEndPosition().equals(kingPosition)) {
+                                foundConflictingMove = true;
+                                illegalMoves.add(move);
+                            }
+                        }
+                    }
+                    // If even one enemy piece can reach the king, then the move is illegal
+                    // No need to check other enemy pieces
+                    if (foundConflictingMove) break;
+                }
+                if (foundConflictingMove) break;
+            }
+        }
+
+        // Remove all illegal moves from the movelist
+        moveList.removeAll(illegalMoves);
+        
+        return moveList;
     }
 
     /**
