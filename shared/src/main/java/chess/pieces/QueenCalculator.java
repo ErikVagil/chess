@@ -15,6 +15,15 @@ public class QueenCalculator implements Calculator {
         this.color = pieceColor;
     }
 
+    /**
+     * Calculates all the positions a queen piece can move to
+     * Does not take into account moves that are illegal due to leaving the king in
+     * danger
+     * 
+     * @param board the current game board
+     * @param myPosition the position of the queen piece
+     * @return Collection of valid moves
+     */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         Collection<ChessMove> moveList = new HashSet<ChessMove>();
 

@@ -18,6 +18,15 @@ public class PawnCalculator implements Calculator {
         this.color = pieceColor;
     }
 
+    /**
+     * Calculates all the positions a pawn piece can move to
+     * Does not take into account moves that are illegal due to leaving the king in
+     * danger
+     * 
+     * @param board the current game board
+     * @param myPosition the position of the pawn piece
+     * @return Collection of valid moves
+     */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         Collection<ChessMove> moveList = new HashSet<ChessMove>();
 
@@ -35,6 +44,14 @@ public class PawnCalculator implements Calculator {
         return moveList;
     }
 
+    /**
+     * Returns a collection of the forward moves a pawn can make
+     * 
+     * @param board the current game board
+     * @param myPosition the position of the pawn piece
+     * @param isFirstMove whether or not it's the pawn's first move
+     * @return a collection of chess moves
+     */
     private Collection<ChessMove> regularMoves(ChessBoard board, ChessPosition myPosition, boolean isFirstMove) {
         Collection<ChessMove> moveList = new HashSet<ChessMove>();
         int row = myPosition.getRow();
@@ -71,6 +88,13 @@ public class PawnCalculator implements Calculator {
         return moveList;
     }
 
+    /**
+     * Returns a collection of the attacking/capturing moves a pawn can make
+     * 
+     * @param board the current game board
+     * @param myPosition the position of the pawn piece
+     * @return a collection of chess moves
+     */
     private Collection<ChessMove> attackMoves(ChessBoard board, ChessPosition myPosition) {
         Collection<ChessMove> moveList = new HashSet<ChessMove>();
         int row = myPosition.getRow();

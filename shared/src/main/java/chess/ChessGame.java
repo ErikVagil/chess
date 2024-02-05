@@ -213,6 +213,13 @@ public class ChessGame {
         return this.board;
     }
 
+
+    /**
+     * Returns the position of the teamColor's king
+     * 
+     * @param teamColor the color of the team whose king needs to be found
+     * @return the position of the king
+     */
     private ChessPosition findKingPosition(TeamColor teamColor) {
         ChessPosition kingPosition = null;
         for (int row = 1; row <= 8; row++) {

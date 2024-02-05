@@ -16,6 +16,15 @@ public class KingCalculator implements Calculator {
         this.color = pieceColor;
     }
 
+    /**
+     * Calculates all the positions a king piece can move to
+     * Does not take into account moves that are illegal due to leaving the king in
+     * danger
+     * 
+     * @param board the current game board
+     * @param myPosition the position of the king piece
+     * @return Collection of valid moves
+     */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         Collection<ChessMove> moveList = new HashSet<ChessMove>();
 
@@ -54,6 +63,15 @@ public class KingCalculator implements Calculator {
         return moveList;
     }
 
+    /**
+     * Returns a ChessMove in a certain (row, column) direction with checks to see if it's valid
+     * 
+     * @param board the current game board
+     * @param myPosition the position of the chess piece
+     * @param directionCol the number of steps in the column direction
+     * @param directionRow the number of steps in the row direction
+     * @return a validated move in the inputted direction
+     */
     private ChessMove moveInDirection(ChessBoard board, ChessPosition myPosition, int directionCol, int directionRow) {
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
