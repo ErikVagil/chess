@@ -59,21 +59,10 @@ public class ChessGame {
         Collection<ChessMove> moveList = piece.pieceMoves(this.board, startPosition);
 
         // Find the king's position on the board
-        ChessPosition kingPosition = null;
-        for (int row = 1; row <= 8; row++) {
-            for (int col = 1; col <= 8; col++) {
-                ChessPiece testPiece = this.board.getPiece(new ChessPosition(row, col));
-                if (testPiece != null &&
-                    testPiece.getPieceType() == PieceType.KING &&
-                    testPiece.getTeamColor() == piece.getTeamColor()) {
-                    kingPosition = new ChessPosition(row, col);
-                    break;
-                }
-            }
-        } 
+        ChessPosition kingPosition = this.findKingPosition(piece.getTeamColor());
         
-        // Iterate through each move and simulate it -> check if making that move gives
-        //  any enemy pieces an opening to the king
+        /* Iterate through each move and simulate it -> check if making that move gives
+            any enemy pieces an opening to the king */
         HashSet<ChessMove> illegalMoves = new HashSet<>();
         for (ChessMove move : moveList) {
             boolean foundConflictingMove = false;
@@ -83,16 +72,16 @@ public class ChessGame {
             simulatedBoard.addPiece(move.getEndPosition(), piece);
             for (int row = 1; row <= 8; row++) {
                 for (int col = 1; col <= 8; col++) {
-                    // Find an enemy piece and get all of the moves it can make after the original piece
-                    //  simulates its move
+                    /* Find an enemy piece and get all of the moves it can make after the original piece
+                        simulates its move */
                     ChessPosition testPosition = new ChessPosition(row, col);
                     ChessPiece enemyPiece = simulatedBoard.getPiece(testPosition);
                     if (enemyPiece != null && 
                         enemyPiece.getTeamColor() != piece.getTeamColor()) {
                         Collection<ChessMove> enemyMoves = enemyPiece.pieceMoves(simulatedBoard, testPosition);
                         for (ChessMove enemyMove : enemyMoves) {
-                            // If the enemy piece can capture the king, then the move the original piece wants
-                            //  to make is illegal
+                            /* If the enemy piece can capture the king, then the move the original piece wants
+                                to make is illegal */
                             if (enemyMove.getEndPosition().equals(kingPosition)) {
                                 foundConflictingMove = true;
                                 illegalMoves.add(move);
@@ -125,12 +114,18 @@ public class ChessGame {
         ChessPiece pieceToMove = this.board.getPiece(move.getStartPosition());
         Collection<ChessMove> validMoveList = this.validMoves(move.getStartPosition());
 
-        if (!validMoveList.contains(move)) {
-            throw new InvalidMoveException("Illegal move passed into function");
+        if (!validMoveList.contains(move) || 
+            this.teamTurn != pieceToMove.getTeamColor()) {
+            throw new InvalidMoveException("Illegal move passed as parameter");
         }
 
         this.board.addPiece(start, null);
         this.board.addPiece(end, pieceToMove);
+        if (this.teamTurn == TeamColor.WHITE) {
+            this.teamTurn = TeamColor.BLACK;
+        } else {
+            this.teamTurn = TeamColor.WHITE;
+        }
     }
 
     /**
@@ -180,5 +175,21 @@ public class ChessGame {
      */
     public ChessBoard getBoard() {
         return this.board;
+    }
+
+    private ChessPosition findKingPosition(TeamColor teamColor) {
+        ChessPosition kingPosition = null;
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPiece testPiece = this.board.getPiece(new ChessPosition(row, col));
+                if (testPiece != null &&
+                    testPiece.getPieceType() == PieceType.KING &&
+                    testPiece.getTeamColor() == teamColor) {
+                    kingPosition = new ChessPosition(row, col);
+                    break;
+                }
+            }
+        }
+        return kingPosition;
     }
 }
