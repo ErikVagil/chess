@@ -114,13 +114,25 @@ public class ChessGame {
         ChessPiece pieceToMove = this.board.getPiece(move.getStartPosition());
         Collection<ChessMove> validMoveList = this.validMoves(move.getStartPosition());
 
+        // The move must move a valid piece
         if (!validMoveList.contains(move) || 
             this.teamTurn != pieceToMove.getTeamColor()) {
             throw new InvalidMoveException("Illegal move passed as parameter");
         }
 
+        // Move the piece on the board
         this.board.addPiece(start, null);
         this.board.addPiece(end, pieceToMove);
+
+        // If it's a pawn and on the end, promote it
+        if (pieceToMove.getPieceType() == PieceType.PAWN &&
+            ((pieceToMove.getTeamColor() == TeamColor.WHITE && end.getRow() == 8) ||
+             (pieceToMove.getTeamColor() == TeamColor.BLACK && end.getRow() == 1))) {
+            ChessPiece promotionPiece = new ChessPiece(this.teamTurn, move.getPromotionPiece());
+            this.board.addPiece(end, promotionPiece);
+        }
+
+        // Switch whose turn it is
         if (this.teamTurn == TeamColor.WHITE) {
             this.teamTurn = TeamColor.BLACK;
         } else {
