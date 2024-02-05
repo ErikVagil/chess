@@ -149,4 +149,19 @@ public class ChessBoard {
         }
         return true;
     }
+
+    @Override
+    public ChessBoard clone() {
+        ChessBoard clonedBoard = new ChessBoard();
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPiece currentPiece = this.getPiece(new ChessPosition(row, col));
+                if (currentPiece == null) {
+                    continue;
+                }
+                clonedBoard.addPiece(new ChessPosition(row, col), currentPiece);
+            }
+        }
+        return clonedBoard;
+    }
 }
