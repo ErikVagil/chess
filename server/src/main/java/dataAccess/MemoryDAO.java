@@ -2,6 +2,7 @@ package dataAccess;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.UUID;
 
 import model.AuthData;
 import model.GameData;
@@ -23,8 +24,13 @@ public class MemoryDAO implements DAO {
 
     @Override
     public UserData getUser(String username) throws DataAccessException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getUser'");
+        UserData user = null;
+        for (UserData possibleUser : MemoryDatabase.userDB) {
+            if (possibleUser.getUsername().equals(username)) {
+                user = possibleUser;
+            }
+        }
+        return user;
     }
 
     @Override
@@ -51,8 +57,10 @@ public class MemoryDAO implements DAO {
     }
 
     @Override
-    public void createAuth(AuthData auth) throws DataAccessException {
-        MemoryDatabase.authDB.add(auth);
+    public String createAuth(String username) throws DataAccessException {
+        String authToken = UUID.randomUUID().toString();
+        MemoryDatabase.authDB.add(new AuthData(authToken, username));
+        return authToken;
     }
 
     @Override

@@ -27,10 +27,10 @@ public class ClearServiceTests {
             dao.createUser(new UserData("marceline", "vampirebasslvr", "marcy@nightosphere.org"));
             dao.createGame(new GameData(10385, "finn", "jake", "atthetreehouse", null));
             dao.createGame(new GameData(69785, "marceline", "finn", "nooneleaves", null));
-            dao.createAuth(new AuthData("123", "finn"));
-            dao.createAuth(new AuthData("234", "jake"));
-            dao.createAuth(new AuthData("235", "jake"));
-            dao.createAuth(new AuthData("666", "marceline"));
+            dao.createAuth("finn");
+            dao.createAuth("jake");
+            dao.createAuth("finn");
+            dao.createAuth("marceline");
         } catch (DataAccessException e) {}
 
         // Clear the database

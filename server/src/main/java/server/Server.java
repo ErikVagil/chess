@@ -1,5 +1,7 @@
 package server;
 
+import com.google.gson.Gson;
+
 import spark.*;
 
 public class Server {
@@ -11,6 +13,7 @@ public class Server {
 
         // Register your endpoints and handle exceptions here.
         Spark.delete("/db", ClearHandler::clear);
+        Spark.post("/user", RegistrationHandler::register);
 
         Spark.awaitInitialization();
         return Spark.port();
@@ -19,5 +22,13 @@ public class Server {
     public void stop() {
         Spark.stop();
         Spark.awaitStop();
+    }
+
+    public static <T> T getBody(Request req, Class<T> cl) throws RuntimeException {
+        T body = new Gson().fromJson(req.body(), cl);
+        if (body == null) {
+            throw new RuntimeException("Request missing body");
+        }
+        return body;
     }
 }
