@@ -7,7 +7,7 @@ import model.GameData;
 import model.UserData;
 
 public class MemoryDatabase {
-    public static ArrayList<UserData> userDB;
-    public static ArrayList<GameData> gameDB;
-    public static ArrayList<AuthData> authDB;
+    public static ArrayList<UserData> userDB = new ArrayList<>();
+    public static ArrayList<GameData> gameDB = new ArrayList<>();
+    public static ArrayList<AuthData> authDB = new ArrayList<>();
 }

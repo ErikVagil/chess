@@ -1,5 +1,6 @@
 package dataAccess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import model.AuthData;
@@ -10,30 +11,29 @@ public class MemoryDAO implements DAO {
 
     @Override
     public void clear() throws DataAccessException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'clear'");
+        MemoryDatabase.userDB = new ArrayList<>();
+        MemoryDatabase.gameDB = new ArrayList<>();
+        MemoryDatabase.authDB = new ArrayList<>();
     }
 
     @Override
-    public void createUser() throws DataAccessException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'createUser'");
+    public void createUser(UserData user) throws DataAccessException {
+        MemoryDatabase.userDB.add(user);
     }
 
     @Override
-    public UserData getUser() throws DataAccessException {
+    public UserData getUser(String username) throws DataAccessException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'getUser'");
     }
 
     @Override
-    public void createGame() throws DataAccessException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'createGame'");
+    public void createGame(GameData game) throws DataAccessException {
+        MemoryDatabase.gameDB.add(game);
     }
 
     @Override
-    public GameData getGame() throws DataAccessException {
+    public GameData getGame(int gameID) throws DataAccessException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'getGame'");
     }
@@ -45,27 +45,25 @@ public class MemoryDAO implements DAO {
     }
 
     @Override
-    public void updateGame() throws DataAccessException {
+    public void updateGame(int gameID) throws DataAccessException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'updateGame'");
     }
 
     @Override
-    public void createAuth() throws DataAccessException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'createAuth'");
+    public void createAuth(AuthData auth) throws DataAccessException {
+        MemoryDatabase.authDB.add(auth);
     }
 
     @Override
-    public AuthData getAuth() throws DataAccessException {
+    public AuthData getAuth(String authToken) throws DataAccessException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'getAuth'");
     }
 
     @Override
-    public void deleteAuth() throws DataAccessException {
+    public void deleteAuth(String authToken) throws DataAccessException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'deleteAuth'");
     }
-    
 }
