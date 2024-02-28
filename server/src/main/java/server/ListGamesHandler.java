@@ -2,6 +2,7 @@ package server;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 import com.google.gson.Gson;
@@ -29,15 +30,22 @@ public class ListGamesHandler {
         try {
             Collection<GameData> games = ListGamesService.listGames(authToken);
             // 200 success
+            System.out.println("checkpoint 1");
             res.status(200);
-            Collection<Map<String, Object>> gamesDisplayList = new ArrayList<>();
-            games.forEach((game) -> {
-                gamesDisplayList.add(Map.of("gameID", game.gameID, 
-                                            "whiteUsername", game.whiteUsername,
-                                            "blackUsername", game.blackUsername,
-                                            "gameName", game.gameName));
-            });
+            System.out.println("checkpoint 2");
+            Collection<HashMap<String, Object>> gamesDisplayList = new ArrayList<>();
+            System.out.println("checkpoint 3");
+            for (GameData game : games) {
+                HashMap<String, Object> mapToAdd = new HashMap<>();
+                mapToAdd.put("gameID", game.gameID);
+                mapToAdd.put("whiteUsername", game.whiteUsername);
+                mapToAdd.put("blackUsername", game.blackUsername);
+                mapToAdd.put("gameName", game.gameName);
+                gamesDisplayList.add(mapToAdd);
+            }
+            System.out.println("checkpoint 4");
             body = new Gson().toJson(Map.of("games", games));
+            System.out.println("checkpoint 5");
         } catch (RuntimeException e) {
             // 401 unauthorized
             res.status(401);

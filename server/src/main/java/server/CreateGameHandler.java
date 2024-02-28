@@ -24,7 +24,7 @@ public class CreateGameHandler {
             gameName = reqBody.get("gameName");
             if (authToken == null ||
                 gameName == null) {
-                throw new RuntimeException("Missing username or password");
+                throw new RuntimeException("Missing info");
             }
         } catch (RuntimeException e) {
             // 400 bad request

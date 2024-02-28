@@ -55,9 +55,10 @@ public class MemoryDAO implements DAO {
     }
 
     @Override
-    public void updateGame(int gameID) throws DataAccessException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'updateGame'");
+    public void updateGame(GameData updatedGame) throws DataAccessException {
+        int gameID = updatedGame.gameID;
+        MemoryDatabase.gameDB.removeIf((GameData game) -> game.gameID == gameID);
+        MemoryDatabase.gameDB.add(updatedGame);
     }
 
     @Override

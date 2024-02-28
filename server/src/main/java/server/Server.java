@@ -18,6 +18,7 @@ public class Server {
         Spark.delete("/session", LogoutHandler::logout);
         Spark.get("/game", ListGamesHandler::listGames);
         Spark.post("/game", CreateGameHandler::createGame);
+        Spark.put("/game", JoinGameHandler::joinGame);
 
         Spark.awaitInitialization();
         return Spark.port();
@@ -29,7 +30,7 @@ public class Server {
     }
 
     public static <T> T getBody(Request req, Class<T> cl) throws RuntimeException {
-        var body = new Gson().fromJson(req.body(), cl);
+        T body = new Gson().fromJson(req.body(), cl);
         if (body == null) {
             throw new RuntimeException("Request missing body");
         }

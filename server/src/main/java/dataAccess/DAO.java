@@ -15,7 +15,7 @@ public interface DAO {
     public void createGame(GameData game) throws DataAccessException;
     public GameData getGame(int gameID) throws DataAccessException;
     public Collection<GameData> listGames() throws DataAccessException;
-    public void updateGame(int gameID) throws DataAccessException;
+    public void updateGame(GameData updatedGame) throws DataAccessException;
 
     public String createAuth(String username) throws DataAccessException;
     public AuthData getAuth(String authToken) throws DataAccessException;
