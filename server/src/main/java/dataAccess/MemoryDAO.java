@@ -46,8 +46,7 @@ public class MemoryDAO implements DAO {
 
     @Override
     public Collection<GameData> listGames() throws DataAccessException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'listGames'");
+        return MemoryDatabase.gameDB;
     }
 
     @Override
