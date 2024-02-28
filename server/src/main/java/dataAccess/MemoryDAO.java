@@ -65,13 +65,17 @@ public class MemoryDAO implements DAO {
 
     @Override
     public AuthData getAuth(String authToken) throws DataAccessException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getAuth'");
+        AuthData auth = null;
+        for (AuthData possibleAuth : MemoryDatabase.authDB) {
+            if (possibleAuth.authToken.equals(authToken)) {
+                auth = possibleAuth;
+            }
+        }
+        return auth;
     }
 
     @Override
     public void deleteAuth(String authToken) throws DataAccessException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deleteAuth'");
+        MemoryDatabase.authDB.removeIf((AuthData auth) -> auth.authToken.equals(authToken));
     }
 }
