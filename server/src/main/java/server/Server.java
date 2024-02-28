@@ -26,7 +26,7 @@ public class Server {
     }
 
     public static <T> T getBody(Request req, Class<T> cl) throws RuntimeException {
-        T body = new Gson().fromJson(req.body(), cl);
+        var body = new Gson().fromJson(req.body(), cl);
         if (body == null) {
             throw new RuntimeException("Request missing body");
         }

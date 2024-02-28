@@ -12,7 +12,7 @@ import service.ClearService;
 public class ClearHandler {
 
     public static Object clear(Request req, Response res) {
-        String body = null;
+        String body = "{}";
         try {
             ClearService.clear();
             res.status(200);

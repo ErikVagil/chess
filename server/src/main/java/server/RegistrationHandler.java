@@ -13,12 +13,17 @@ public class RegistrationHandler {
     
     public static Object register(Request req, Response res) {
         UserData user;
-        String body;
+        String body = "{}";
         res.type("application/json");
 
         // Parse user data from HTTP request body
         try {
             user = Server.getBody(req, UserData.class);
+            if (user.username == null ||
+                user.password == null ||
+                user.email == null) {
+                throw new RuntimeException("Missing username or password");
+            }
         } catch (RuntimeException e) {
             // 400 bad request
             body = new Gson().toJson(Map.of("message", "Error: bad request"));

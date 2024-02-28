@@ -13,13 +13,17 @@ public class LoginHandler {
     @SuppressWarnings("unchecked")
     public static Object login(Request req, Response res) {
         Map<String, String> credentials;
-        String body = null;
+        String body = "{}";
         res.type("application/json");
         res.body(body);
 
         // Get HTTP header body
         try {
             credentials = Server.getBody(req, Map.class);
+            if (credentials.get("username") == null ||
+                credentials.get("password") == null) {
+                throw new RuntimeException("Missing username or password");
+            }
         } catch (RuntimeException e) {
             // 400 bad request
             body = new Gson().toJson(Map.of("message", "Error: bad request"));
