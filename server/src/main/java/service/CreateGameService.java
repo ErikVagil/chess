@@ -1,6 +1,6 @@
 package service;
 
-import java.util.UUID;
+import java.util.Random;
 
 import chess.ChessGame;
 import dataAccess.DAO;
@@ -17,7 +17,11 @@ public class CreateGameService {
         if (auth == null) {
             throw new RuntimeException("AuthToken not found");
         }
-        int gameID = UUID.randomUUID().hashCode();
+        int gameID = 0;
+        while (true) {
+            gameID = new Random().nextInt(1_000_000_000) + 100_000_000;
+            if (dao.getGame(gameID) == null) break;
+        }
         GameData newGame = new GameData(gameID, null, null, gameName, new ChessGame());
         dao.createGame(newGame);
         return gameID;
