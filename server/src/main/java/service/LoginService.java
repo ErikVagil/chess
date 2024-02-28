@@ -10,7 +10,7 @@ public class LoginService {
     public static String login(String username, String password) throws DataAccessException, RuntimeException {
         DAO dao = new MemoryDAO();
         UserData user = dao.getUser(username);
-        if (user == null || !user.getPassword().equals(password)) {
+        if (user == null || !user.password.equals(password)) {
             throw new RuntimeException("Username or password is incorrect");
         }
         String authToken = dao.createAuth(username);

@@ -26,7 +26,7 @@ public class MemoryDAO implements DAO {
     public UserData getUser(String username) throws DataAccessException {
         UserData user = null;
         for (UserData possibleUser : MemoryDatabase.userDB) {
-            if (possibleUser.getUsername().equals(username)) {
+            if (possibleUser.username.equals(username)) {
                 user = possibleUser;
             }
         }

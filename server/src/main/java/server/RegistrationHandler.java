@@ -31,7 +31,7 @@ public class RegistrationHandler {
         try {
             String authToken = RegistrationService.register(user);
             // 200 success
-            body = new Gson().toJson(Map.of("username", user.getUsername(), "authToken", authToken));
+            body = new Gson().toJson(Map.of("username", user.username, "authToken", authToken));
             res.status(200);
             res.body(body);
             return body;
