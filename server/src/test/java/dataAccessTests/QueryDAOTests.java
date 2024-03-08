@@ -245,4 +245,28 @@ public class QueryDAOTests {
         DAO dao = new QueryDAO();
         assertThrows(DataAccessException.class, () -> dao.createAuth("definitely doesn't exist"));
     }
+
+    @Test
+    public void getAuthTestPos() {
+        DAO dao = new QueryDAO();
+        UserData testUser = new UserData("testUser" + (int)(Math.random() * 100000000), 
+                                         "testPassword" + (int)(Math.random() * 100000000), 
+                                         "testEmail" + (int)(Math.random() * 100000000));
+        assertDoesNotThrow(() -> dao.createUser(testUser));
+        ArrayList<String> tokenResult = new ArrayList<>();
+        assertDoesNotThrow(() -> tokenResult.add(dao.createAuth(testUser.username)));
+        ArrayList<AuthData> authResult = new ArrayList<>();
+        assertDoesNotThrow(() -> authResult.add(dao.getAuth(tokenResult.get(0))));
+        
+        assertEquals(authResult.get(0).authToken, tokenResult.get(0));
+        assertEquals(authResult.get(0).username, testUser.username);
+    }
+
+    @Test
+    public void getAuthTestNeg() {
+        DAO dao = new QueryDAO();
+        ArrayList<AuthData> result = new ArrayList<>();
+        assertDoesNotThrow(() -> result.add(dao.getAuth("definitely not a token")));
+        assertNull(result.get(0));
+    }
 }

@@ -223,8 +223,33 @@ public class QueryDAO implements DAO {
 
     @Override
     public AuthData getAuth(String authToken) throws DataAccessException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getAuth'");
+        int userID = -1;
+        String statement = String.format("SELECT authToken, userID FROM auths WHERE authToken='%s'", authToken);
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+                ResultSet rs = preparedStatement.executeQuery();
+                
+                if (!rs.next()) {
+                    return null;
+                } else {
+                    userID = rs.getInt("userID");
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("Unable to access database: %s", e.getMessage()));
+        }
+        
+        statement = String.format("SELECT username FROM users WHERE ID='%s'", userID);
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+                ResultSet rs = preparedStatement.executeQuery();
+                
+                if (rs.next()) return new AuthData(authToken, rs.getString("username"));
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("Unable to access database: %s", e.getMessage()));
+        }
+        return null;
     }
 
     @Override
