@@ -254,8 +254,18 @@ public class QueryDAO implements DAO {
 
     @Override
     public void deleteAuth(String authToken) throws DataAccessException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deleteAuth'");
+        if (getAuth(authToken) == null) {
+            throw new DataAccessException("Auth does not exist");
+        }
+
+        String statement = String.format("DELETE FROM auths WHERE authToken='%s'", authToken);
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("Unable to access database: %s", e.getMessage()));
+        }
     }
 
     private final String[] createStatements = {

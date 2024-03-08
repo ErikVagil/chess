@@ -269,4 +269,60 @@ public class QueryDAOTests {
         assertDoesNotThrow(() -> result.add(dao.getAuth("definitely not a token")));
         assertNull(result.get(0));
     }
+
+    @Test
+    public void deleteAuthTestPos() {
+        DAO dao = new QueryDAO();
+        UserData testUser = new UserData("testUser" + (int)(Math.random() * 100000000), 
+                                         "testPassword" + (int)(Math.random() * 100000000), 
+                                         "testEmail" + (int)(Math.random() * 100000000));
+        assertDoesNotThrow(() -> dao.createUser(testUser));
+        ArrayList<String> tokenResult = new ArrayList<>();
+        assertDoesNotThrow(() -> tokenResult.add(dao.createAuth(testUser.username)));
+        assertDoesNotThrow(() -> dao.deleteAuth(tokenResult.get(0)));
+        
+        ArrayList<AuthData> authResult = new ArrayList<>();
+        assertDoesNotThrow(() -> authResult.add(dao.getAuth(tokenResult.get(0))));
+        assertNull(authResult.get(0));
+    }
+
+    @Test
+    public void deleteAuthTestNeg() {
+        DAO dao = new QueryDAO();
+        assertThrows(DataAccessException.class, () -> dao.deleteAuth("definitely not a token"));
+    }
+
+    @Test
+    public void clearTest() {
+        DAO dao = new QueryDAO();
+        UserData testUser = new UserData("testUser" + (int)(Math.random() * 100000000), 
+                                         "testPassword" + (int)(Math.random() * 100000000), 
+                                         "testEmail" + (int)(Math.random() * 100000000));
+        assertDoesNotThrow(() -> dao.createUser(testUser));
+        assertDoesNotThrow(() -> dao.createAuth(testUser.username));
+        GameData testGame = new GameData((int)(Math.random() * 100000000), 
+                                         null, 
+                                         null, 
+                                         "testGame" + (int)(Math.random() * 100000000), 
+                                         null);
+        assertDoesNotThrow(() -> dao.createGame(testGame));
+
+        assertDoesNotThrow(() -> dao.clear());
+        assertDoesNotThrow(() -> {
+            String[] statements = {"SELECT * FROM users",
+                                   "SELECT * FROM auths",
+                                   "SELECT * FROM games"};
+            try (Connection conn = DatabaseManager.getConnection()) {
+                for (String statement : statements) {
+                    try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+                        ResultSet rs = preparedStatement.executeQuery();
+
+                        assertTrue(!rs.next());
+                    }
+                }
+            } catch (SQLException e) {
+                throw new DataAccessException(String.format("Unable to configure database: %s", e.getMessage()));
+            }
+        });
+    }
 }
