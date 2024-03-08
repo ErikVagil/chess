@@ -3,16 +3,14 @@ package service;
 import java.util.Random;
 
 import chess.ChessGame;
-import dataAccess.DAO;
-import dataAccess.DataAccessException;
-import dataAccess.MemoryDAO;
+import dataAccess.*;
 import model.AuthData;
 import model.GameData;
 
 public class CreateGameService {
     
     public static int createGame(String authToken, String gameName) throws DataAccessException, RuntimeException {
-        DAO dao = new MemoryDAO();
+        DAO dao = new QueryDAO();
         AuthData auth = dao.getAuth(authToken);
         if (auth == null) {
             throw new RuntimeException("AuthToken not found");

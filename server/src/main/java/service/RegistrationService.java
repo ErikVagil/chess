@@ -1,14 +1,12 @@
 package service;
 
-import dataAccess.DAO;
-import dataAccess.DataAccessException;
-import dataAccess.MemoryDAO;
+import dataAccess.*;
 import model.UserData;
 
 public class RegistrationService {
     
     public static String register(UserData user) throws DataAccessException, RuntimeException {
-        DAO dao = new MemoryDAO();
+        DAO dao = new QueryDAO();
         UserData queriedUser = dao.getUser(user.username);
         if (queriedUser != null) {
             throw new RuntimeException("User already exists in database");

@@ -1,15 +1,13 @@
 package service;
 
-import dataAccess.DAO;
-import dataAccess.DataAccessException;
-import dataAccess.MemoryDAO;
+import dataAccess.*;
 import model.AuthData;
 import model.GameData;
 
 public class JoinGameService {
     
     public static void joinGame(String authToken, String playerColor, int gameID) throws DataAccessException, RuntimeException {
-        DAO dao = new MemoryDAO();
+        DAO dao = new QueryDAO();
         AuthData auth = dao.getAuth(authToken);
         if (auth == null) {
             throw new RuntimeException("AuthToken not found");
