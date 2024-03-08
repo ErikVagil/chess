@@ -190,4 +190,40 @@ public class QueryDAOTests {
         Collection<GameData> gotList = gotListList.get(0);
         assertEquals(2, gotList.size());
     }
+
+    @Test
+    public void updateGameTest() {
+        DAO dao = new QueryDAO();
+
+        // Clear database first
+        assertDoesNotThrow(() -> {
+            String[] statements = {"DROP TABLE games",
+                                "DROP TABLE auths",
+                                "DROP TABLE users"};
+                                try (Connection conn = DatabaseManager.getConnection()) {
+                                    for (String statement : statements) {
+                    try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+                        preparedStatement.executeUpdate();
+                    }
+                }
+            } catch (SQLException e) {
+                throw new DataAccessException(String.format("Unable to configure database: %s", e.getMessage()));
+            }
+        });
+
+        new QueryDAO();
+
+        GameData testGame = new GameData(201, null, null, "test1", null);
+        assertDoesNotThrow(() -> dao.createGame(testGame));
+
+        UserData testWhiteUser = new UserData("testUser" + (int)(Math.random() * 100000000), 
+                                              "testPassword" + (int)(Math.random() * 100000000), 
+                                              "testEmail" + (int)(Math.random() * 100000000));
+        assertDoesNotThrow(() -> dao.createUser(testWhiteUser));
+
+        assertDoesNotThrow(() -> dao.updateGame(new GameData(testGame.gameID, testWhiteUser.username, null, testGame.gameName, null)));
+        ArrayList<String> result = new ArrayList<>();
+        assertDoesNotThrow(() -> result.add(dao.getGame(testGame.gameID).whiteUsername));
+        assertEquals(testWhiteUser.username, result.get(0));
+    }
 }

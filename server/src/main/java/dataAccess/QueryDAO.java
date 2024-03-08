@@ -212,8 +212,18 @@ public class QueryDAO implements DAO {
 
     @Override
     public void updateGame(GameData updatedGame) throws DataAccessException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'updateGame'");
+        int gameID = updatedGame.gameID;
+        GameData existingGame = getGame(gameID);
+        if (existingGame == null) return;
+        String statement = String.format("DELETE FROM games WHERE gameID='%s'", gameID);
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("Unable to access database: %s", e.getMessage()));
+        }
+        createGame(updatedGame);
     }
 
     @Override
