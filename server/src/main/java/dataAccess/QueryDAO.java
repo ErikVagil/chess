@@ -1,13 +1,27 @@
 package dataAccess;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collection;
+
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import model.AuthData;
 import model.GameData;
 import model.UserData;
 
 public class QueryDAO implements DAO {
+    /*
+        String statement = "";
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("Unable to configure database: %s", e.getMessage()));
+        }
+    */
     public QueryDAO() {
         try {
             configureDatabase();
@@ -22,8 +36,23 @@ public class QueryDAO implements DAO {
 
     @Override
     public void createUser(UserData user) throws DataAccessException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'createUser'");
+        String username = user.username;
+        String password = user.password;
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        String hashedPassword = encoder.encode(password);
+
+        String email = user.email;
+        String statement = "INSERT INTO users (username, password, email) VALUES (?, ?, ?)";
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.setString(1, username);
+                preparedStatement.setString(2, hashedPassword);
+                preparedStatement.setString(3, email);
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("Unable to configure database: %s", e.getMessage()));
+        }
     }
 
     @Override
@@ -109,14 +138,14 @@ public class QueryDAO implements DAO {
     
     private void configureDatabase() throws DataAccessException {
         DatabaseManager.createDatabase();
-        try (var conn = DatabaseManager.getConnection()) {
-            for (var statement : createStatements) {
-                try (var preparedStatement = conn.prepareStatement(statement)) {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            for (String statement : createStatements) {
+                try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
                     preparedStatement.executeUpdate();
                 }
             }
-        } catch (SQLException ex) {
-            throw new DataAccessException(String.format("Unable to configure database: %s", ex.getMessage()));
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("Unable to configure database: %s", e.getMessage()));
         }
     }
 }

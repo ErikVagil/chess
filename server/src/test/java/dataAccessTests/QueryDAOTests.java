@@ -1,10 +1,58 @@
 package dataAccessTests;
 
-import org.junit.jupiter.api.Test;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
-import dataAccess.DAO;
-import dataAccess.QueryDAO;
+import org.junit.jupiter.api.Test;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import dataAccess.*;
+import model.UserData;
 
 public class QueryDAOTests {
     
+    @Test
+    public void createUserTestPos() {
+        DAO dao = new QueryDAO();
+        UserData testUser = new UserData("testUser" + (int)(Math.random() * 100000000), 
+                                         "testPassword" + (int)(Math.random() * 100000000), 
+                                         "testEmail" + (int)(Math.random() * 100000000));
+        assertDoesNotThrow(() -> dao.createUser(testUser));
+
+        String statement = String.format("SELECT username, password, email FROM users WHERE username='%s'", testUser.username);
+        Map<String, Object> result = new HashMap<String, Object>();
+        assertDoesNotThrow(() -> {
+            try (Connection conn = DatabaseManager.getConnection()) {
+                try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+                    ResultSet rs = preparedStatement.executeQuery();
+                    while (rs.next()) {
+                        result.put("username", rs.getString("username"));
+                        result.put("password", rs.getString("password"));
+                        result.put("email", rs.getString("email"));
+                    }
+                }
+            } catch (SQLException e) {
+                throw new DataAccessException(String.format("Unable to configure database: %s", e.getMessage()));
+            }
+        });
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        assertEquals(testUser.username, result.get("username"));
+        assertTrue(encoder.matches(testUser.password, result.get("password").toString()));
+        assertEquals(testUser.email, result.get("email"));
+    }
+
+    @Test
+    public void createUserTestNeg() {
+        DAO dao = new QueryDAO();
+        UserData testUser = new UserData("testUser" + (int)(Math.random() * 100000000), 
+                                         null, 
+                                         "testEmail" + (int)(Math.random() * 100000000));
+        assertThrows(IllegalArgumentException.class, () -> dao.createUser(testUser));
+    }
 }
