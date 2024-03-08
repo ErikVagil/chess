@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -154,5 +156,38 @@ public class QueryDAOTests {
         Map<String, GameData> results = new HashMap<>();
         assertDoesNotThrow(() -> results.put("got", dao.getGame(-1)));
         assertNull(results.get("got"));
+    }
+
+    @Test
+    public void listGamesTest() {
+        DAO dao = new QueryDAO();
+
+        // Clear database first
+        assertDoesNotThrow(() -> {
+            String[] statements = {"DROP TABLE games",
+                                   "DROP TABLE auths",
+                                   "DROP TABLE users"};
+                                   try (Connection conn = DatabaseManager.getConnection()) {
+                                       for (String statement : statements) {
+                    try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+                        preparedStatement.executeUpdate();
+                    }
+                }
+            } catch (SQLException e) {
+                throw new DataAccessException(String.format("Unable to configure database: %s", e.getMessage()));
+            }
+        });
+
+        new QueryDAO();
+
+        GameData testGame1 = new GameData(101, null, null, "test1", null);
+        GameData testGame2 = new GameData(102, null, null, "test2", null);
+        assertDoesNotThrow(() -> dao.createGame(testGame1));
+        assertDoesNotThrow(() -> dao.createGame(testGame2));
+
+        ArrayList<Collection<GameData>> gotListList = new ArrayList<>();
+        assertDoesNotThrow(() -> gotListList.add(dao.listGames()));
+        Collection<GameData> gotList = gotListList.get(0);
+        assertEquals(2, gotList.size());
     }
 }

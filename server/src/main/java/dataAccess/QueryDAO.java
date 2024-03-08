@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -187,8 +188,26 @@ public class QueryDAO implements DAO {
 
     @Override
     public Collection<GameData> listGames() throws DataAccessException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'listGames'");
+        String statement = "SELECT gameID FROM games";
+        ArrayList<Integer> allGameIDs = new ArrayList<>();
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+                ResultSet rs = preparedStatement.executeQuery();
+
+                while (rs.next()) {
+                    allGameIDs.add(rs.getInt("gameID"));
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("Unable to access database: %s", e.getMessage()));
+        }
+
+        Collection<GameData> gamesList = new ArrayList<>();
+        for (int gameID : allGameIDs) {
+            gamesList.add(getGame(gameID));
+        }
+
+        return gamesList;
     }
 
     @Override
