@@ -226,4 +226,23 @@ public class QueryDAOTests {
         assertDoesNotThrow(() -> result.add(dao.getGame(testGame.gameID).whiteUsername));
         assertEquals(testWhiteUser.username, result.get(0));
     }
+
+    @Test
+    public void createAuthTestPos() {
+        DAO dao = new QueryDAO();
+        UserData testUser = new UserData("testUser" + (int)(Math.random() * 100000000), 
+                                         "testPassword" + (int)(Math.random() * 100000000), 
+                                         "testEmail" + (int)(Math.random() * 100000000));
+        assertDoesNotThrow(() -> dao.createUser(testUser));
+
+        ArrayList<String> result = new ArrayList<>();
+        assertDoesNotThrow(() -> result.add(dao.createAuth(testUser.username)));
+        assertNotNull(result.get(0));
+    }
+
+    @Test
+    public void createAuthTestNeg() {
+        DAO dao = new QueryDAO();
+        assertThrows(DataAccessException.class, () -> dao.createAuth("definitely doesn't exist"));
+    }
 }

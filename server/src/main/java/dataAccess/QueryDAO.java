@@ -6,8 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -93,30 +92,8 @@ public class QueryDAO implements DAO {
         ChessGame chessGame = game.game;
         String gameJson = new Gson().toJson(chessGame);
 
-        // Get user IDs
-        String whiteStatement = String.format("SELECT ID FROM users WHERE username='%s'", whiteUsername);
-        String blackStatement = String.format("SELECT ID FROM users WHERE username='%s'", blackUsername);
-        Map<String, Integer> result = new HashMap<>();
-        try (Connection conn = DatabaseManager.getConnection()) {
-            try (PreparedStatement preparedStatement = conn.prepareStatement(whiteStatement)) {
-                ResultSet rs = preparedStatement.executeQuery();
-
-                while (rs.next()) {
-                    result.put("whiteID", rs.getInt("ID"));
-                }
-            }
-            try (PreparedStatement preparedStatement = conn.prepareStatement(blackStatement)) {
-                ResultSet rs = preparedStatement.executeQuery();
-
-                while (rs.next()) {
-                    result.put("blackID", rs.getInt("ID"));
-                }
-            }
-        } catch (SQLException e) {
-            throw new DataAccessException(String.format("Unable to access database: %s", e.getMessage()));
-        }
-        Integer whiteUserID = result.get("whiteID");
-        Integer blackUserID = result.get("blackID");
+        Integer whiteUserID = getUserID(whiteUsername);
+        Integer blackUserID = getUserID(blackUsername);
 
         // Create game
         String statement = "INSERT INTO games (gameID, whiteUserID, blackUserID, gameName, game) VALUES (?, ?, ?, ?, ?)";
@@ -228,8 +205,20 @@ public class QueryDAO implements DAO {
 
     @Override
     public String createAuth(String username) throws DataAccessException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'createAuth'");
+        Integer userID = getUserID(username);
+        if (userID == null) throw new DataAccessException("User does not exist");
+        String authToken = UUID.randomUUID().toString();
+        String statement = "INSERT INTO auths (authToken, userID) VALUES (?, ?)";
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.setString(1, authToken);
+                preparedStatement.setInt(2, userID);
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("Unable to access database: %s", e.getMessage()));
+        }
+        return authToken;
     }
 
     @Override
@@ -288,5 +277,25 @@ public class QueryDAO implements DAO {
         } catch (SQLException e) {
             throw new DataAccessException(String.format("Unable to configure database: %s", e.getMessage()));
         }
+    }
+
+    private Integer getUserID(String username) throws DataAccessException {
+        String statement = String.format("SELECT ID FROM users WHERE username='%s'", username);
+        ArrayList<Integer> result = new ArrayList<>();
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+                ResultSet rs = preparedStatement.executeQuery();
+
+                if (!rs.next()) {
+                    result.add(null);
+                } else {
+                    result.add(rs.getInt("ID"));
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("Unable to access database: %s", e.getMessage()));
+        }
+
+        return result.get(0);
     }
 }
