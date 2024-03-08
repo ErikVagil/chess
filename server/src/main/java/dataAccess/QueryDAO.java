@@ -5,9 +5,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import com.google.gson.Gson;
+
+import chess.ChessGame;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
@@ -80,8 +85,60 @@ public class QueryDAO implements DAO {
 
     @Override
     public void createGame(GameData game) throws DataAccessException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'createGame'");
+        int gameID = game.gameID;
+        String whiteUsername = game.whiteUsername;
+        String blackUsername = game.blackUsername;
+        String gameName = game.gameName;
+        ChessGame chessGame = game.game;
+        String gameJson = new Gson().toJson(chessGame);
+
+        // Get user IDs
+        String whiteStatement = String.format("SELECT ID FROM users WHERE username='%s'", whiteUsername);
+        String blackStatement = String.format("SELECT ID FROM users WHERE username='%s'", blackUsername);
+        Map<String, Integer> result = new HashMap<>();
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement preparedStatement = conn.prepareStatement(whiteStatement)) {
+                ResultSet rs = preparedStatement.executeQuery();
+
+                while (rs.next()) {
+                    result.put("whiteID", rs.getInt("ID"));
+                }
+            }
+            try (PreparedStatement preparedStatement = conn.prepareStatement(blackStatement)) {
+                ResultSet rs = preparedStatement.executeQuery();
+
+                while (rs.next()) {
+                    result.put("blackID", rs.getInt("ID"));
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("Unable to access database: %s", e.getMessage()));
+        }
+        Integer whiteUserID = result.get("whiteID");
+        Integer blackUserID = result.get("blackID");
+
+        // Create game
+        String statement = "INSERT INTO games (gameID, whiteUserID, blackUserID, gameName, game) VALUES (?, ?, ?, ?, ?)";
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.setInt(1, gameID);
+                if (whiteUserID == null) {
+                    preparedStatement.setString(2, null);
+                } else {
+                    preparedStatement.setInt(2, whiteUserID);
+                }
+                if (blackUserID == null) {
+                    preparedStatement.setString(3, null);
+                } else {
+                    preparedStatement.setInt(3, blackUserID);
+                }
+                preparedStatement.setString(4, gameName);
+                preparedStatement.setString(5, gameJson);
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("Unable to access database: %s", e.getMessage()));
+        }
     }
 
     @Override

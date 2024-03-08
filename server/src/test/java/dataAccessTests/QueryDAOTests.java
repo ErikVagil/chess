@@ -13,7 +13,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import static org.junit.jupiter.api.Assertions.*;
 
 import dataAccess.*;
-import model.UserData;
+import model.*;
 
 public class QueryDAOTests {
     
@@ -79,5 +79,42 @@ public class QueryDAOTests {
         Map<String, UserData> results = new HashMap<>();
         assertDoesNotThrow(() -> results.put("got", dao.getUser("definitely not a username")));
         assertNull(results.get("got"));
+    }
+
+    @Test
+    public void createGameTestPos() {
+        DAO dao = new QueryDAO();
+        GameData testGame = new GameData((int)(Math.random() * 100000000), 
+                                         null, 
+                                         null, 
+                                         "testGame" + (int)(Math.random() * 100000000), 
+                                         null);
+        assertDoesNotThrow(() -> dao.createGame(testGame));
+
+        String statement = String.format("SELECT * FROM games WHERE gameID='%s'", testGame.gameID);
+        Map<String, Object> result = new HashMap<String, Object>();
+        assertDoesNotThrow(() -> {
+            try (Connection conn = DatabaseManager.getConnection()) {
+                try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+                    ResultSet rs = preparedStatement.executeQuery();
+                    while (rs.next()) {
+                        result.put("gameID", rs.getString("gameID"));
+                        result.put("gameName", rs.getString("gameName"));
+                    }
+                }
+            } catch (SQLException e) {
+                throw new DataAccessException(String.format("Unable to configure database: %s", e.getMessage()));
+            }
+        });
+        
+        assertEquals(testGame.gameID, Integer.parseInt(result.get("gameID").toString()));
+        assertEquals(testGame.gameName, result.get("gameName"));
+    }
+
+    @Test
+    public void createGameTestNeg() {
+        DAO dao = new QueryDAO();
+        GameData testGame = new GameData(0, null, null, null, null);
+        assertThrows(DataAccessException.class, () -> dao.createGame(testGame));
     }
 }
