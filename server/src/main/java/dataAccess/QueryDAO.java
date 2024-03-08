@@ -1,5 +1,7 @@
 package dataAccess;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -36,8 +38,22 @@ public class QueryDAO implements DAO {
 
     @Override
     public void clear() throws DataAccessException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'clear'");
+        assertDoesNotThrow(() -> {
+            String[] statements = {"DROP TABLE games",
+                                   "DROP TABLE auths",
+                                   "DROP TABLE users"};
+            try (Connection conn = DatabaseManager.getConnection()) {
+                for (String statement : statements) {
+                    try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+                        preparedStatement.executeUpdate();
+                    }
+                }
+            } catch (SQLException e) {
+                throw new DataAccessException(String.format("Unable to configure database: %s", e.getMessage()));
+            }
+        });
+
+        new QueryDAO();
     }
 
     @Override
