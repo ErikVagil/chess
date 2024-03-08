@@ -143,8 +143,46 @@ public class QueryDAO implements DAO {
 
     @Override
     public GameData getGame(int gameID) throws DataAccessException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getGame'");
+        GameData queriedGame = null;
+        String statement = String.format("SELECT * FROM games WHERE gameID='%s'", gameID);
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+                ResultSet rs = preparedStatement.executeQuery();
+                
+                while (rs.next()) {
+                    int whiteUserID = rs.getInt("whiteUserID");
+                    String whiteUsername = null;
+                    String whiteStatement = String.format("SELECT username FROM users WHERE ID='%s'", whiteUserID);
+                    try (PreparedStatement innerPreparedStatement = conn.prepareStatement(whiteStatement)) {
+                        ResultSet innerRS = innerPreparedStatement.executeQuery();
+                        while (innerRS.next()) {
+                            whiteUsername = innerRS.getString("username");
+                        }
+                    }
+                    int blackUserID = rs.getInt("blackUserID");
+                    String blackUsername = null;
+                    String blackStatement = String.format("SELECT username FROM users WHERE ID='%s'", blackUserID);
+                    try (PreparedStatement innerPreparedStatement = conn.prepareStatement(blackStatement)) {
+                        ResultSet innerRS = innerPreparedStatement.executeQuery();
+                        while (innerRS.next()) {
+                            blackUsername = innerRS.getString("username");
+                        }
+                    }
+                    String gameName = rs.getString("gameName");
+                    String gameJson = rs.getString("game");
+                    ChessGame chessGame = new Gson().fromJson(gameJson, ChessGame.class);
+                    queriedGame = new GameData(gameID,
+                                               whiteUsername,
+                                               blackUsername,
+                                               gameName,
+                                               chessGame);
+                }
+                
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("Unable to access database: %s", e.getMessage()));
+        }
+        return queriedGame;
     }
 
     @Override

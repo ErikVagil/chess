@@ -117,4 +117,42 @@ public class QueryDAOTests {
         GameData testGame = new GameData(0, null, null, null, null);
         assertThrows(DataAccessException.class, () -> dao.createGame(testGame));
     }
+
+    @Test
+    public void getGameTestPos() {
+        DAO dao = new QueryDAO();
+        UserData testWhiteUser = new UserData("testUser" + (int)(Math.random() * 100000000), 
+                                              "testPassword" + (int)(Math.random() * 100000000), 
+                                              "testEmail" + (int)(Math.random() * 100000000));
+        assertDoesNotThrow(() -> dao.createUser(testWhiteUser));
+
+        UserData testBlackUser = new UserData("testUser" + (int)(Math.random() * 100000000), 
+                                              "testPassword" + (int)(Math.random() * 100000000), 
+                                              "testEmail" + (int)(Math.random() * 100000000));
+        assertDoesNotThrow(() -> dao.createUser(testBlackUser));
+
+        GameData testGame = new GameData((int)(Math.random() * 100000000), 
+                                         testWhiteUser.username, 
+                                         testBlackUser.username,
+                                         "testGameName" + (int)(Math.random() * 100000000),
+                                         null);
+        assertDoesNotThrow(() -> dao.createGame(testGame));
+        Map<String, GameData> result = new HashMap<>();
+        assertDoesNotThrow(() -> result.put("got", dao.getGame(testGame.gameID)));
+
+        assertNotNull(result.get("got"));
+        assertEquals(testGame.gameID, result.get("got").gameID);
+        assertEquals(testGame.whiteUsername, result.get("got").whiteUsername);
+        assertEquals(testGame.blackUsername, result.get("got").blackUsername);
+        assertEquals(testGame.gameName, result.get("got").gameName);
+        assertEquals(testGame.game, result.get("got").game);
+    }
+
+    @Test
+    public void getGameTestNeg() {
+        DAO dao = new QueryDAO();
+        Map<String, GameData> results = new HashMap<>();
+        assertDoesNotThrow(() -> results.put("got", dao.getGame(-1)));
+        assertNull(results.get("got"));
+    }
 }
