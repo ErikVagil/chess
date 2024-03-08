@@ -2,6 +2,7 @@ package dataAccess;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 
@@ -19,7 +20,7 @@ public class QueryDAO implements DAO {
                 preparedStatement.executeUpdate();
             }
         } catch (SQLException e) {
-            throw new DataAccessException(String.format("Unable to configure database: %s", e.getMessage()));
+            throw new DataAccessException(String.format("Unable to access database: %s", e.getMessage()));
         }
     */
     public QueryDAO() {
@@ -51,14 +52,30 @@ public class QueryDAO implements DAO {
                 preparedStatement.executeUpdate();
             }
         } catch (SQLException e) {
-            throw new DataAccessException(String.format("Unable to configure database: %s", e.getMessage()));
+            throw new DataAccessException(String.format("Unable to access database: %s", e.getMessage()));
         }
     }
 
     @Override
     public UserData getUser(String username) throws DataAccessException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getUser'");
+        UserData queriedUser = null;
+        String statement = String.format("SELECT username, password, email FROM users WHERE username='%s'", username);
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
+                ResultSet rs = preparedStatement.executeQuery();
+                
+                while (rs.next()) {
+                    String gotUsername = rs.getString("username");
+                    String gotPassword = rs.getString("password");
+                    String gotEmail = rs.getString("email");
+                    queriedUser = new UserData(gotUsername, gotPassword, gotEmail);
+                }
+                
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("Unable to access database: %s", e.getMessage()));
+        }
+        return queriedUser;
     }
 
     @Override

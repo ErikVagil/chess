@@ -55,4 +55,29 @@ public class QueryDAOTests {
                                          "testEmail" + (int)(Math.random() * 100000000));
         assertThrows(IllegalArgumentException.class, () -> dao.createUser(testUser));
     }
+
+    @Test
+    public void getUserTestPos() {
+        DAO dao = new QueryDAO();
+        UserData testUser = new UserData("testUser" + (int)(Math.random() * 100000000), 
+                                         "testPassword" + (int)(Math.random() * 100000000), 
+                                         "testEmail" + (int)(Math.random() * 100000000));
+        assertDoesNotThrow(() -> dao.createUser(testUser));
+        Map<String, UserData> result = new HashMap<>();
+        assertDoesNotThrow(() -> result.put("got", dao.getUser(testUser.username)));
+
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        assertNotNull(result.get("got"));
+        assertEquals(testUser.username, result.get("got").username);
+        assertTrue(encoder.matches(testUser.password, result.get("got").password));
+        assertEquals(testUser.email, result.get("got").email);
+    }
+
+    @Test
+    public void getUserTestNeg() {
+        DAO dao = new QueryDAO();
+        Map<String, UserData> results = new HashMap<>();
+        assertDoesNotThrow(() -> results.put("got", dao.getUser("definitely not a username")));
+        assertNull(results.get("got"));
+    }
 }
