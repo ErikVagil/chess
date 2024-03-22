@@ -14,12 +14,10 @@ import com.google.gson.Gson;
 
 import model.*;
 public class ServerFacade {
-    private boolean loggedIn;
     private String sessionToken;
     private String displayName;
     
     public ServerFacade() {
-        loggedIn = false;
         sessionToken = null;
         displayName = null;
     }
@@ -35,7 +33,7 @@ public class ServerFacade {
 
         Scanner scanner = new Scanner(System.in);
         
-        while (!loggedIn && running) {
+        while (running) {
             System.out.print("[" + EscapeSequences.SET_TEXT_COLOR_RED + "LOGGED OUT" + EscapeSequences.RESET_TEXT_COLOR + "] >>> ");
             String input = scanner.nextLine();
 
@@ -139,7 +137,7 @@ public class ServerFacade {
 
         Scanner scanner = new Scanner(System.in);
 
-        while (loggedIn && running) {
+        while (running) {
             System.out.print("[" + EscapeSequences.SET_TEXT_COLOR_GREEN + displayName + EscapeSequences.RESET_TEXT_COLOR + "] >>> ");
             String input = scanner.nextLine();
 
