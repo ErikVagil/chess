@@ -182,12 +182,35 @@ public class ServerFacade {
                     }
                     break;
                 case "create":
+                    // Check command args
+                    if (inputTokens.size() != 2) {
+                        System.out.println("Proper usage of this command is:" +
+                                           EscapeSequences.SET_TEXT_COLOR_BLUE +
+                                           " create" +
+                                           EscapeSequences.SET_TEXT_COLOR_MAGENTA +
+                                           " <NAME>");
+                        System.out.println(EscapeSequences.RESET_TEXT_COLOR +
+                                           "Type \"help\" for more information.");
+                        break;
+                    }
+
+                    // Create game
+                    String gameName = inputTokens.get(1);
+                    try {
+                        clientCreate(sessionToken, gameName);
+                        System.out.println("Successfully created game!");
+                    } catch (Exception e) {
+                        System.out.println("Could not create game. Please try again.");
+                    }
                     break;
                 case "list":
                     break;
                 case "join":
                     break;
                 case "quit":
+                    System.out.println(EscapeSequences.SET_TEXT_COLOR_RED +
+                                       "Please log out before quitting." +
+                                       EscapeSequences.RESET_TEXT_COLOR);
                     break;
                 default:
                     break;
@@ -252,5 +275,32 @@ public class ServerFacade {
         http.addRequestProperty("authorization", authToken);
 
         http.connect();
+    }
+
+    @SuppressWarnings("unchecked")
+    private int clientCreate(String authToken, String gameName) throws Exception {
+        URI uri = new URI("http://localhost:8080/game");
+        HttpURLConnection http = (HttpURLConnection) uri.toURL().openConnection();
+        http.setRequestMethod("POST");
+
+        http.setDoOutput(true);
+
+        http.addRequestProperty("Content-Type", "application/json");
+        http.addRequestProperty("authorization", authToken);
+
+        Map<String, String> reqBody = Map.of("gameName", gameName);
+        try (OutputStream outputStream = http.getOutputStream()) {
+            String jsonBody = new Gson().toJson(reqBody);
+            outputStream.write(jsonBody.getBytes());
+        }
+
+        http.connect();
+
+        try (InputStream inputStream = http.getInputStream()) {
+            InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+            Map<String, Double> resBody = new Gson().fromJson(inputStreamReader, Map.class);
+            int gameID = (int) Math.round(resBody.get("gameID"));
+            return gameID;
+        }
     }
 }
