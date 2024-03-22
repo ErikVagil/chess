@@ -48,21 +48,21 @@ public class ServerFacade {
                                        EscapeSequences.SET_TEXT_COLOR_MAGENTA +
                                        " <USERNAME> <PASSWORD> <EMAIL>" +
                                        EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY +
-                                       " - create a new account");
+                                       " - Create a new account.");
                     System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + 
                                        "    login" +
                                        EscapeSequences.SET_TEXT_COLOR_MAGENTA +
                                        " <USERNAME> <PASSWORD>" +
                                        EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY +
-                                       " - log in to an existing account");
+                                       " - Log in to an existing account.");
                     System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + 
                                        "    quit" +
                                        EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY +
-                                       " - exit the program");
+                                       " - Exit the program.");
                     System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + 
                                        "    help" +
                                        EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY +
-                                       " - display information about commands");
+                                       " - Display information about commands.");
                     System.out.print(EscapeSequences.RESET_TEXT_COLOR);
                     break;
                 case "quit":
@@ -147,6 +147,31 @@ public class ServerFacade {
 
             switch (inputTokens.get(0).toLowerCase()) {
                 case "help":
+                System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + 
+                                   "    create" +
+                                   EscapeSequences.SET_TEXT_COLOR_MAGENTA +
+                                   " <NAME>" +
+                                   EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY +
+                                   " - Create a new game.");
+                System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + 
+                                   "    list" +
+                                   EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY +
+                                   " - See a list of existing games.");
+                System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + 
+                                   "    join" +
+                                   EscapeSequences.SET_TEXT_COLOR_MAGENTA +
+                                   " <ID> [WHITE|BLACK|<empty>]" +
+                                   EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY +
+                                   " - Join an existing game. Leave color blank to join as an observer.");
+                System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + 
+                                   "    logout" +
+                                   EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY +
+                                   " - Log out of the current session.");
+                System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + 
+                                   "    help" +
+                                   EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY +
+                                   " - Display information about commands.");
+                System.out.print(EscapeSequences.RESET_TEXT_COLOR);
                     break;
                 case "logout":
                     break;
