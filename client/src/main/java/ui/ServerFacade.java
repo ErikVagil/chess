@@ -25,16 +25,17 @@ public class ServerFacade {
     public void run() {
         System.out.println("♕  Welcome to CS 240 Chess. Type \"help\" to get started.");
 
-        preLoginLoop();
+        Scanner scanner = new Scanner(System.in);
+        preLoginLoop(scanner);
+        scanner.close();
     }
 
-    private void preLoginLoop() {
+    private void preLoginLoop(Scanner scanner) {
         boolean running = true;
-
-        Scanner scanner = new Scanner(System.in);
         
         while (running) {
             System.out.print("[" + EscapeSequences.SET_TEXT_COLOR_RED + "LOGGED OUT" + EscapeSequences.RESET_TEXT_COLOR + "] >>> ");
+
             String input = scanner.nextLine();
 
             // Parse input into tokens to get params
@@ -91,7 +92,7 @@ public class ServerFacade {
                         sessionToken = auth.authToken;
                         displayName = auth.username;
                         System.out.println("Successfully logged in!");
-                        postLoginLoop();
+                        postLoginLoop(scanner);
                     } catch (Exception e) {
                         System.out.println("Could not log in. Please try again.");
                     }
@@ -118,7 +119,7 @@ public class ServerFacade {
                         sessionToken = auth.authToken;
                         displayName = auth.username;
                         System.out.println("Successfully registered!");
-                        postLoginLoop();
+                        postLoginLoop(scanner);
                     } catch (Exception e) {
                         System.out.println("Could not register. Please try again.");
                     }
@@ -128,17 +129,14 @@ public class ServerFacade {
                     break;
             }
         }
-
-        scanner.close();
     }
 
-    private void postLoginLoop() {
+    private void postLoginLoop(Scanner scanner) {
         boolean running = true;
-
-        Scanner scanner = new Scanner(System.in);
-
+        
         while (running) {
             System.out.print("[" + EscapeSequences.SET_TEXT_COLOR_GREEN + displayName + EscapeSequences.RESET_TEXT_COLOR + "] >>> ");
+            
             String input = scanner.nextLine();
 
             // Parse input into tokens to get params
@@ -147,33 +145,41 @@ public class ServerFacade {
 
             switch (inputTokens.get(0).toLowerCase()) {
                 case "help":
-                System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + 
-                                   "    create" +
-                                   EscapeSequences.SET_TEXT_COLOR_MAGENTA +
-                                   " <NAME>" +
-                                   EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY +
-                                   " - Create a new game.");
-                System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + 
-                                   "    list" +
-                                   EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY +
-                                   " - See a list of existing games.");
-                System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + 
-                                   "    join" +
-                                   EscapeSequences.SET_TEXT_COLOR_MAGENTA +
-                                   " <ID> [WHITE|BLACK|<empty>]" +
-                                   EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY +
-                                   " - Join an existing game. Leave color blank to join as an observer.");
-                System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + 
-                                   "    logout" +
-                                   EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY +
-                                   " - Log out of the current session.");
-                System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + 
-                                   "    help" +
-                                   EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY +
-                                   " - Display information about commands.");
-                System.out.print(EscapeSequences.RESET_TEXT_COLOR);
+                    System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + 
+                                    "    create" +
+                                    EscapeSequences.SET_TEXT_COLOR_MAGENTA +
+                                    " <NAME>" +
+                                    EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY +
+                                    " - Create a new game.");
+                    System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + 
+                                    "    list" +
+                                    EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY +
+                                    " - See a list of existing games.");
+                    System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + 
+                                    "    join" +
+                                    EscapeSequences.SET_TEXT_COLOR_MAGENTA +
+                                    " <ID> [WHITE|BLACK|<empty>]" +
+                                    EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY +
+                                    " - Join an existing game. Leave color blank to join as an observer.");
+                    System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + 
+                                    "    logout" +
+                                    EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY +
+                                    " - Log out of the current session.");
+                    System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE + 
+                                    "    help" +
+                                    EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY +
+                                    " - Display information about commands.");
+                    System.out.print(EscapeSequences.RESET_TEXT_COLOR);
                     break;
                 case "logout":
+                    try {
+                        clientLogout(sessionToken);
+                        System.out.println("Successfully logged out!");
+                        running = false;
+                        sessionToken = null;
+                    } catch (Exception e) {
+                        System.out.println("Could not log out. Please try again.");
+                    }
                     break;
                 case "create":
                     break;
@@ -187,8 +193,6 @@ public class ServerFacade {
                     break;
             }
         }
-
-        scanner.close();
     }
 
     @SuppressWarnings("unchecked")
@@ -235,5 +239,18 @@ public class ServerFacade {
             InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
             return new Gson().fromJson(inputStreamReader, model.AuthData.class);
         }
+    }
+
+    private void clientLogout(String authToken) throws Exception {
+        URI uri = new URI("http://localhost:8080/session");
+        HttpURLConnection http = (HttpURLConnection) uri.toURL().openConnection();
+        http.setRequestMethod("DELETE");
+
+        http.setDoOutput(true);
+
+        http.addRequestProperty("Content-Type", "application/json");
+        http.addRequestProperty("authorization", authToken);
+
+        http.connect();
     }
 }
