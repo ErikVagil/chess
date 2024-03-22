@@ -25,9 +25,13 @@ public class ServerFacade {
     }
 
     public void run() {
-        boolean running = true;
-
         System.out.println("♕  Welcome to CS 240 Chess. Type \"help\" to get started.");
+
+        preLoginLoop();
+    }
+
+    private void preLoginLoop() {
+        boolean running = true;
 
         Scanner scanner = new Scanner(System.in);
         
@@ -89,6 +93,7 @@ public class ServerFacade {
                         sessionToken = auth.authToken;
                         displayName = auth.username;
                         System.out.println("Successfully logged in!");
+                        postLoginLoop();
                     } catch (Exception e) {
                         System.out.println("Could not log in. Please try again.");
                     }
@@ -115,12 +120,47 @@ public class ServerFacade {
                         sessionToken = auth.authToken;
                         displayName = auth.username;
                         System.out.println("Successfully registered!");
+                        postLoginLoop();
                     } catch (Exception e) {
                         System.out.println("Could not register. Please try again.");
                     }
                     break;
                 default:
                     System.out.println("Please enter a valid command. Type \"help\" for more information.");
+                    break;
+            }
+        }
+
+        scanner.close();
+    }
+
+    private void postLoginLoop() {
+        boolean running = true;
+
+        Scanner scanner = new Scanner(System.in);
+
+        while (loggedIn && running) {
+            System.out.print("[" + EscapeSequences.SET_TEXT_COLOR_GREEN + displayName + EscapeSequences.RESET_TEXT_COLOR + "] >>> ");
+            String input = scanner.nextLine();
+
+            // Parse input into tokens to get params
+            List<String> inputTokens;
+            inputTokens = Arrays.asList(input.split(" "));
+
+            switch (inputTokens.get(0).toLowerCase()) {
+                case "help":
+                    break;
+                case "logout":
+                    break;
+                case "create":
+                    break;
+                case "list":
+                    break;
+                case "join":
+                    break;
+                case "quit":
+                    break;
+                default:
                     break;
             }
         }
