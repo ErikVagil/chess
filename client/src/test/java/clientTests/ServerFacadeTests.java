@@ -1,7 +1,5 @@
 package clientTests;
 
-import java.util.ArrayList;
-
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.*;
 
@@ -20,9 +18,9 @@ public class ServerFacadeTests {
     @BeforeAll
     public static void init() {
         server = new Server();
-        var port = server.run(0);
+        int port = server.run(0);
         System.out.println("Started test HTTP server on " + port);
-        facade = new ServerFacade(0);
+        facade = new ServerFacade(port);
         dao = new QueryDAO();
     }
 
@@ -39,126 +37,94 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void testClientLoginPos() {
-        try {
-            dao.createUser(new UserData("testuser", "testpass", "testmail@mail.com"));
-        } catch (Exception e) {}
+    public void testClientLoginPos() throws Exception {
+        dao.createUser(new UserData("testuser", "testpass", "testmail@mail.com"));
 
-        ArrayList<AuthData> results = new ArrayList<>();
+        AuthData result = facade.clientLogin("testuser", "testpass");
 
-        assertDoesNotThrow(() -> {
-            results.add(facade.clientLogin("testuser", "testpass"));
-        });
-
-        assertNotNull(results.get(0));
+        assertNotNull(result);
     }
 
     @Test
-    public void testClientLoginNeg() {
-        try {
-            dao.createUser(new UserData("testuser", "testpass", "testmail@mail.com"));
-        } catch (Exception e) {}
+    public void testClientLoginNeg() throws Exception {
+        dao.createUser(new UserData("testuser", "testpass", "testmail@mail.com"));
 
         assertThrows(Exception.class, () -> facade.clientLogin("testuser", "wrongpassword"));
     }
 
     @Test
-    public void testClientRegisterPos() {
-        ArrayList<AuthData> results = new ArrayList<>();
+    public void testClientRegisterPos() throws Exception {
+        AuthData result = facade.clientRegister("testuser", "testpass", "testmail@mail.com");
 
-        assertDoesNotThrow(() -> {
-            results.add(facade.clientRegister("testuser", "testpass", "testmail@mail.com"));
-        });
-
-        assertNotNull(results.get(0));
+        assertNotNull(result);
     }
 
     @Test
-    public void testClientRegisterNeg() {
+    public void testClientRegisterNeg() throws Exception {
         assertThrows(Exception.class, () -> facade.clientRegister(null, null, null));
     }
 
     @Test
-    public void testClientLogoutPos() {
-        ArrayList<String> results = new ArrayList<>();
-        assertDoesNotThrow(() -> dao.createUser(new UserData("testuser", "testpass", "testmail@mail.com")));
-        assertDoesNotThrow(() -> results.add(dao.createAuth("testuser")));
-        assertDoesNotThrow(() -> facade.clientLogout(results.get(0)));
-        assertDoesNotThrow(() -> dao.getUser("testuser"));
+    public void testClientLogoutPos() throws Exception {
+        dao.createUser(new UserData("testuser", "testpass", "testmail@mail.com"));
+        String token = dao.createAuth("testuser");
+        facade.clientLogout(token);
+        assertNull(dao.getAuth(token));
     }
 
     @Test
-    public void testClientLogoutNeg() {
-        ArrayList<Integer> results = new ArrayList<>();
-        assertDoesNotThrow(() -> results.add(facade.clientLogout(null)));
-        assertNotEquals(results.get(0), 200);
+    public void testClientLogoutNeg() throws Exception {
+        int httpcode = facade.clientLogout(null);
+        assertNotEquals(httpcode, 200);
     }
 
     @Test
-    public void testClientCreatePos() {
+    public void testClientCreatePos() throws Exception {
         int listSize;
-        ArrayList<String> params = new ArrayList<>();
-        try {
-            listSize = dao.listGames().size();
-            assertEquals(listSize, 0);
-            dao.createUser(new UserData("testuser", "testpass", "testmail@mail.com"));
-            params.add(dao.createAuth("testuser"));
-        } catch (Exception e) {}
-        assertDoesNotThrow(() -> facade.clientCreate(params.get(0), "testgame"));
-        try {
-            listSize = dao.listGames().size();
-            assertNotEquals(listSize, 0);
-        } catch (Exception e) {}
+        listSize = dao.listGames().size();
+        assertEquals(listSize, 0);
+        dao.createUser(new UserData("testuser", "testpass", "testmail@mail.com"));
+        String token = dao.createAuth("testuser");
+        facade.clientCreate(token, "testgame");
+        listSize = dao.listGames().size();
+        assertNotEquals(listSize, 0);
     }
 
     @Test
-    public void testClientCreateNeg() {
+    public void testClientCreateNeg() throws Exception {
         assertThrows(Exception.class, () -> facade.clientCreate("badauth", "testgame"));
     }
 
     @Test
-    public void testClientListPos() {
-        ArrayList<String> params = new ArrayList<>();
-        try {
-            dao.createGame(new GameData(101, null, null, "mario", null));
-            dao.createGame(new GameData(102, null, null, "luigi", null));
-            dao.createGame(new GameData(103, null, null, "peach", null));
-            dao.createUser(new UserData("testuser", "testpass", "testmail@mail.com"));
-            params.add(dao.createAuth("testuser"));
-        } catch (Exception e) {}
-        ArrayList<Integer> results = new ArrayList<>();
-        assertDoesNotThrow(() -> results.add(facade.clientList(params.get(0)).size()));
-        assertEquals(results.get(0), 3);
+    public void testClientListPos() throws Exception {
+        dao.createGame(new GameData(101, null, null, "mario", null));
+        dao.createGame(new GameData(102, null, null, "luigi", null));
+        dao.createGame(new GameData(103, null, null, "peach", null));
+        dao.createUser(new UserData("testuser", "testpass", "testmail@mail.com"));
+        String token = dao.createAuth("testuser");
+        int result = facade.clientList(token).size();
+        assertEquals(result, 3);
     }
 
     @Test
-    public void testClientListNeg() {
+    public void testClientListNeg() throws Exception {
         assertThrows(Exception.class, () -> facade.clientList("badauth"));
     }
 
     @Test
-    public void testClientJoinPos() {
-        ArrayList<String> params = new ArrayList<>();
-        try {
-            dao.createGame(new GameData(101, null, null, "mario", null));
-            dao.createUser(new UserData("testuser", "testpass", "testmail@mail.com"));
-            params.add(dao.createAuth("testuser"));
-        } catch (Exception e) {}
-        assertDoesNotThrow(() -> facade.clientJoin(params.get(0), 101, "WHITE"));
-        ArrayList<String> results = new ArrayList<>();
-        try {
-            results.add(dao.getGame(101).whiteUsername);
-        } catch (Exception e) {}
-        assertNotNull(results.get(0));
+    public void testClientJoinPos() throws Exception {
+        dao.createGame(new GameData(101, null, null, "mario", null));
+        dao.createUser(new UserData("testuser", "testpass", "testmail@mail.com"));
+        String token = dao.createAuth("testuser");
+        assertDoesNotThrow(() -> facade.clientJoin(token, 101, "WHITE"));
+        String whiteUsername = dao.getGame(101).whiteUsername;
+        assertNotNull(whiteUsername);
     }
 
     @Test
-    public void testClientJoinNeg() {
-        try {
-            dao.createGame(new GameData(101, null, null, "mario", null));
-        } catch (Exception e) {}
-        ArrayList<Integer> results = new ArrayList<>();
-        assertDoesNotThrow(() -> results.add(facade.clientJoin("badauth", 101, "WHITE")));
-        assertNotEquals(results.get(0), 200);
+    public void testClientJoinNeg() throws Exception {
+        dao.createGame(new GameData(101, null, null, "mario", null));
+        int httpcode = facade.clientJoin("badauth", 101, "WHITE");
+        assertNotEquals(httpcode, 200);
     }
 }
