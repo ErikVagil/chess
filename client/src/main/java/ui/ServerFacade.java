@@ -279,7 +279,7 @@ public class ServerFacade {
         }
     }
 
-    public void renderChessBoard(boolean isFlipped) {
+    private void renderChessBoard(boolean isFlipped) {
         ChessBoard board = new ChessBoard();
         board.resetBoard();
 
@@ -412,7 +412,7 @@ public class ServerFacade {
         }
     }
 
-    public void clientLogout(String authToken) throws Exception {
+    public int clientLogout(String authToken) throws Exception {
         URI uri = new URI("http://localhost:" + port + "/session");
         HttpURLConnection http = (HttpURLConnection) uri.toURL().openConnection();
         http.setRequestMethod("DELETE");
@@ -424,7 +424,7 @@ public class ServerFacade {
 
         http.connect();
 
-        http.getResponseCode();
+        return http.getResponseCode();
     }
 
     @SuppressWarnings("unchecked")
@@ -474,7 +474,7 @@ public class ServerFacade {
         }
     }
 
-    public void clientJoin(String authToken, int gameID, String playerColor) throws Exception {
+    public int clientJoin(String authToken, int gameID, String playerColor) throws Exception {
         URI uri = new URI("http://localhost:" + port + "/game");
         HttpURLConnection http = (HttpURLConnection) uri.toURL().openConnection();
         http.setRequestMethod("PUT");
@@ -493,6 +493,6 @@ public class ServerFacade {
 
         http.connect();
 
-        http.getResponseCode();
+        return http.getResponseCode();
     }
 }
