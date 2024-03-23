@@ -3,14 +3,17 @@ package ui;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import model.*;
 public class ServerFacade {
@@ -204,6 +207,17 @@ public class ServerFacade {
                     }
                     break;
                 case "list":
+                    try {
+                        Collection<GameData> games = clientList(sessionToken);
+                        for (GameData game : games) {
+                            System.out.println("    NAME: " + game.gameName); 
+                            System.out.println("      ID: " + game.gameID); 
+                            System.out.println("   WHITE: " + game.whiteUsername); 
+                            System.out.println("   BLACK: " + game.blackUsername + "\n");
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Could not get games list. Please try again.");
+                    }
                     break;
                 case "join":
                     break;
@@ -301,6 +315,26 @@ public class ServerFacade {
             Map<String, Double> resBody = new Gson().fromJson(inputStreamReader, Map.class);
             int gameID = (int) Math.round(resBody.get("gameID"));
             return gameID;
+        }
+    }
+
+    private Collection<GameData> clientList(String authToken) throws Exception {
+        URI uri = new URI("http://localhost:8080/game");
+        HttpURLConnection http = (HttpURLConnection) uri.toURL().openConnection();
+        http.setRequestMethod("GET");
+
+        http.setDoOutput(true);
+
+        http.addRequestProperty("Content-Type", "application/json");
+        http.addRequestProperty("authorization", authToken);
+
+        http.connect();
+
+        try (InputStream inputStream = http.getInputStream()) {
+            InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+            Type collectionType = new TypeToken<Collection<GameData>>(){}.getType();
+            Collection<GameData> resBody = new Gson().fromJson(inputStreamReader, collectionType);
+            return resBody;
         }
     }
 }
