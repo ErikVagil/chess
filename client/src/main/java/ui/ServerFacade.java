@@ -19,10 +19,18 @@ import chess.*;
 import chess.ChessGame.TeamColor;
 import model.*;
 public class ServerFacade {
+    private int port;
     private String sessionToken;
     private String displayName;
     
     public ServerFacade() {
+        this.port = 8080;
+        sessionToken = null;
+        displayName = null;
+    }
+
+    public ServerFacade(int port) {
+        this.port = port;
         sessionToken = null;
         displayName = null;
     }
@@ -359,8 +367,8 @@ public class ServerFacade {
     }
 
     @SuppressWarnings("unchecked")
-    private AuthData clientLogin(String username, String password) throws Exception {
-        URI uri = new URI("http://localhost:8080/session");
+    public AuthData clientLogin(String username, String password) throws Exception {
+        URI uri = new URI("http://localhost:" + port + "/session");
         HttpURLConnection http = (HttpURLConnection) uri.toURL().openConnection();
         http.setRequestMethod("POST");
 
@@ -382,8 +390,8 @@ public class ServerFacade {
         }
     }
 
-    private AuthData clientRegister(String username, String password, String email) throws Exception {
-        URI uri = new URI("http://localhost:8080/user");
+    public AuthData clientRegister(String username, String password, String email) throws Exception {
+        URI uri = new URI("http://localhost:" + port + "/user");
         HttpURLConnection http = (HttpURLConnection) uri.toURL().openConnection();
         http.setRequestMethod("POST");
 
@@ -404,29 +412,31 @@ public class ServerFacade {
         }
     }
 
-    private void clientLogout(String authToken) throws Exception {
-        URI uri = new URI("http://localhost:8080/session");
+    public void clientLogout(String authToken) throws Exception {
+        URI uri = new URI("http://localhost:" + port + "/session");
         HttpURLConnection http = (HttpURLConnection) uri.toURL().openConnection();
         http.setRequestMethod("DELETE");
 
         http.setDoOutput(true);
 
         http.addRequestProperty("Content-Type", "application/json");
-        http.addRequestProperty("authorization", authToken);
+        http.addRequestProperty("Authorization", authToken);
 
         http.connect();
+
+        http.getResponseCode();
     }
 
     @SuppressWarnings("unchecked")
-    private int clientCreate(String authToken, String gameName) throws Exception {
-        URI uri = new URI("http://localhost:8080/game");
+    public int clientCreate(String authToken, String gameName) throws Exception {
+        URI uri = new URI("http://localhost:" + port + "/game");
         HttpURLConnection http = (HttpURLConnection) uri.toURL().openConnection();
         http.setRequestMethod("POST");
 
         http.setDoOutput(true);
 
         http.addRequestProperty("Content-Type", "application/json");
-        http.addRequestProperty("authorization", authToken);
+        http.addRequestProperty("Authorization", authToken);
 
         Map<String, String> reqBody = Map.of("gameName", gameName);
         try (OutputStream outputStream = http.getOutputStream()) {
@@ -444,43 +454,45 @@ public class ServerFacade {
         }
     }
 
-    private Collection<GameData> clientList(String authToken) throws Exception {
-        URI uri = new URI("http://localhost:8080/game");
+    public Collection<GameData> clientList(String authToken) throws Exception {
+        URI uri = new URI("http://localhost:" + port + "/game");
         HttpURLConnection http = (HttpURLConnection) uri.toURL().openConnection();
         http.setRequestMethod("GET");
 
         http.setDoOutput(true);
 
         http.addRequestProperty("Content-Type", "application/json");
-        http.addRequestProperty("authorization", authToken);
+        http.addRequestProperty("Authorization", authToken);
 
         http.connect();
 
         try (InputStream inputStream = http.getInputStream()) {
             InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-            Type collectionType = new TypeToken<Collection<GameData>>(){}.getType();
-            Collection<GameData> resBody = new Gson().fromJson(inputStreamReader, collectionType);
-            return resBody;
+            Type collectionType = new TypeToken<Map<String, Collection<GameData>>>(){}.getType();
+            Map<String, Collection<GameData>> resBody = new Gson().fromJson(inputStreamReader, collectionType);
+            return resBody.get("games");
         }
     }
 
-    private void clientJoin(String authToken, int gameID, String playerColor) throws Exception {
-        URI uri = new URI("http://localhost:8080/game");
+    public void clientJoin(String authToken, int gameID, String playerColor) throws Exception {
+        URI uri = new URI("http://localhost:" + port + "/game");
         HttpURLConnection http = (HttpURLConnection) uri.toURL().openConnection();
         http.setRequestMethod("PUT");
 
         http.setDoOutput(true);
 
         http.addRequestProperty("Content-Type", "application/json");
-        http.addRequestProperty("authorization", authToken);
+        http.addRequestProperty("Authorization", authToken);
 
         if (playerColor == null) playerColor = "null";
-        Map<String, String> reqBody = Map.of("playerColor", playerColor, "gameID", "" + gameID);
+        Map<String, Object> reqBody = Map.of("playerColor", playerColor, "gameID", gameID);
         try (OutputStream outputStream = http.getOutputStream()) {
             String jsonBody = new Gson().toJson(reqBody);
             outputStream.write(jsonBody.getBytes());
         }
 
         http.connect();
+
+        http.getResponseCode();
     }
 }

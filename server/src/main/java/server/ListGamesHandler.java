@@ -1,9 +1,11 @@
 package server;
 
+import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Map;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import dataAccess.DataAccessException;
 import model.GameData;
@@ -29,7 +31,8 @@ public class ListGamesHandler {
             Collection<GameData> games = ListGamesService.listGames(authToken);
             // 200 success
             res.status(200);
-            body = new Gson().toJson(games, Collection.class);
+            Type collectionType = new TypeToken<Map<String, Collection<GameData>>>(){}.getType();
+            body = new Gson().toJson(Map.of("games", games), collectionType);
         } catch (RuntimeException e) {
             // 401 unauthorized
             res.status(401);
