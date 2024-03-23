@@ -15,6 +15,8 @@ import java.util.Scanner;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import chess.*;
+import chess.ChessGame.TeamColor;
 import model.*;
 public class ServerFacade {
     private String sessionToken;
@@ -220,6 +222,42 @@ public class ServerFacade {
                     }
                     break;
                 case "join":
+                    // Check command args
+                    if (inputTokens.size() < 2 || inputTokens.size() > 3) {
+                        System.out.println("Proper usage of this command is:" +
+                                           EscapeSequences.SET_TEXT_COLOR_BLUE +
+                                           " join" +
+                                           EscapeSequences.SET_TEXT_COLOR_MAGENTA +
+                                           " <ID> [WHITE|BLACK|<empty>]");
+                        System.out.println(EscapeSequences.RESET_TEXT_COLOR +
+                                           "Type \"help\" for more information.");
+                        break;
+                    }
+
+                    // Join a game
+                    int gameID;
+                    try {
+                        gameID = Integer.parseInt(inputTokens.get(1));
+                    } catch (ClassCastException e) {
+                        System.out.println("Error: ID must be a number.");
+                        break;
+                    }
+
+                    String color = null;
+                    try {
+                        color = inputTokens.get(2).toUpperCase();
+                    } catch (IndexOutOfBoundsException e) {}
+
+                    // Join game
+                    try {
+                        clientJoin(sessionToken, gameID, color);
+                    } catch (Exception e) {
+                        System.out.println("Could not join game. Please try again.");
+                    }
+
+                    // Draw boards -- change in phase 6
+                    renderChessBoard(true);
+                    renderChessBoard(false);
                     break;
                 case "quit":
                     System.out.println(EscapeSequences.SET_TEXT_COLOR_RED +
@@ -227,7 +265,95 @@ public class ServerFacade {
                                        EscapeSequences.RESET_TEXT_COLOR);
                     break;
                 default:
+                    System.out.println("Please enter a valid command. Type \"help\" for more information.");
                     break;
+            }
+        }
+    }
+
+    public void renderChessBoard(boolean isFlipped) {
+        ChessBoard board = new ChessBoard();
+        board.resetBoard();
+
+        if (!isFlipped) {
+            for (int row = 8; row >= 1; row--) {
+                System.out.print(EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_COLOR + row + "  ");
+                for (int col = 1; col <= 8; col++) {
+                    if ((row + col) % 2 == 0) {
+                        System.out.print(EscapeSequences.SET_BG_COLOR_BLACK);
+                    } else {
+                        System.out.print(EscapeSequences.SET_BG_COLOR_WHITE);
+                    }
+                    System.out.print(EscapeSequences.SET_TEXT_COLOR_BLUE);
+
+                    ChessPiece currentPiece = board.getPiece(new ChessPosition(row, col));
+                    String currentSymbol = getPieceSymbol(currentPiece);
+                    System.out.print(currentSymbol);
+                }
+                System.out.print(EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_COLOR);
+                System.out.println();
+            }
+            System.out.print(EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_COLOR);
+            System.out.println(EscapeSequences.EMPTY + " a  b  c  d  e  f  g  h \n");
+        } else {
+            for (int row = 1; row <= 8; row++) {
+                System.out.print(EscapeSequences.RESET_BG_COLOR + row + "  ");
+                for (int col = 8; col >= 1; col--) {
+                    if ((row + col) % 2 == 0) {
+                        System.out.print(EscapeSequences.SET_BG_COLOR_BLACK);
+                    } else {
+                        System.out.print(EscapeSequences.SET_BG_COLOR_WHITE);
+                    }
+                    
+
+                    ChessPiece currentPiece = board.getPiece(new ChessPosition(row, col));
+                    String currentSymbol = getPieceSymbol(currentPiece);
+                    System.out.print(currentSymbol);
+                }
+                System.out.print(EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_COLOR);
+                System.out.println();
+            }
+            System.out.print(EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_COLOR);
+            System.out.println(EscapeSequences.EMPTY + " h  g  f  e  d  c  b  a \n");
+        }
+    }
+
+    private String getPieceSymbol(ChessPiece piece) {
+        if (piece == null) return EscapeSequences.EMPTY;
+
+        if (piece.getTeamColor() == TeamColor.WHITE) {
+            switch (piece.getPieceType()) {
+                case KING:
+                    return EscapeSequences.SET_TEXT_COLOR_BLUE + EscapeSequences.WHITE_KING;
+                case QUEEN:
+                    return EscapeSequences.SET_TEXT_COLOR_BLUE + EscapeSequences.WHITE_QUEEN;
+                case BISHOP:
+                    return EscapeSequences.SET_TEXT_COLOR_BLUE + EscapeSequences.WHITE_BISHOP;
+                case KNIGHT:
+                    return EscapeSequences.SET_TEXT_COLOR_BLUE + EscapeSequences.WHITE_KNIGHT;
+                case ROOK:
+                    return EscapeSequences.SET_TEXT_COLOR_BLUE + EscapeSequences.WHITE_ROOK;
+                case PAWN:
+                    return EscapeSequences.SET_TEXT_COLOR_BLUE + EscapeSequences.WHITE_PAWN;
+                default:
+                    return EscapeSequences.SET_TEXT_COLOR_BLUE + EscapeSequences.EMPTY;
+            }
+        } else {
+            switch (piece.getPieceType()) {
+                case KING:
+                    return EscapeSequences.SET_TEXT_COLOR_RED + EscapeSequences.BLACK_KING;
+                case QUEEN:
+                    return EscapeSequences.SET_TEXT_COLOR_RED + EscapeSequences.BLACK_QUEEN;
+                case BISHOP:
+                    return EscapeSequences.SET_TEXT_COLOR_RED + EscapeSequences.BLACK_BISHOP;
+                case KNIGHT:
+                    return EscapeSequences.SET_TEXT_COLOR_RED + EscapeSequences.BLACK_KNIGHT;
+                case ROOK:
+                    return EscapeSequences.SET_TEXT_COLOR_RED + EscapeSequences.BLACK_ROOK;
+                case PAWN:
+                    return EscapeSequences.SET_TEXT_COLOR_RED + EscapeSequences.BLACK_PAWN;
+                default:
+                    return EscapeSequences.SET_TEXT_COLOR_RED + EscapeSequences.EMPTY;
             }
         }
     }
@@ -336,5 +462,25 @@ public class ServerFacade {
             Collection<GameData> resBody = new Gson().fromJson(inputStreamReader, collectionType);
             return resBody;
         }
+    }
+
+    private void clientJoin(String authToken, int gameID, String playerColor) throws Exception {
+        URI uri = new URI("http://localhost:8080/game");
+        HttpURLConnection http = (HttpURLConnection) uri.toURL().openConnection();
+        http.setRequestMethod("PUT");
+
+        http.setDoOutput(true);
+
+        http.addRequestProperty("Content-Type", "application/json");
+        http.addRequestProperty("authorization", authToken);
+
+        if (playerColor == null) playerColor = "null";
+        Map<String, String> reqBody = Map.of("playerColor", playerColor, "gameID", "" + gameID);
+        try (OutputStream outputStream = http.getOutputStream()) {
+            String jsonBody = new Gson().toJson(reqBody);
+            outputStream.write(jsonBody.getBytes());
+        }
+
+        http.connect();
     }
 }
