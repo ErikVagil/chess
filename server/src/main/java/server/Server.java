@@ -1,9 +1,18 @@
 package server;
 
-import com.google.gson.Gson;
+import org.eclipse.jetty.websocket.api.annotations.*;
+import org.eclipse.jetty.websocket.api.*;
 
-import spark.*;
+import com.google.gson.*;
 
+import spark.Request;
+import spark.Spark;
+
+import webSocketMessages.userCommands.*;
+import webSocketMessages.userCommands.UserGameCommand.CommandType;
+import webSocketMessages.serverMessages.*;
+
+@WebSocket
 public class Server {
 
     public int run(int desiredPort) {
@@ -20,6 +29,9 @@ public class Server {
         Spark.post("/game", CreateGameHandler::createGame);
         Spark.put("/game", JoinGameHandler::joinGame);
 
+        // WebSocket upgrade endpoint
+        Spark.webSocket("/connect", Server.class);
+
         Spark.awaitInitialization();
         return Spark.port();
     }
@@ -35,5 +47,35 @@ public class Server {
             throw new RuntimeException("Request missing body");
         }
         return body;
+    }
+
+    @OnWebSocketMessage
+    public void onMessage(Session session, String message) throws Exception {
+        JsonObject json = new Gson().fromJson(message, JsonObject.class);
+        CommandType commandType = CommandType.valueOf(json.get("commandType").getAsString());
+        switch (commandType) {
+            case JOIN_PLAYER:
+                JoinPlayerCommand joinPlayerCommand = new Gson().fromJson(message, JoinPlayerCommand.class);
+                UserCommandHandler.handleJoinPlayer(session, joinPlayerCommand);
+                break;
+            case JOIN_OBSERVER:
+                JoinObserverCommand joinObserverCommand = new Gson().fromJson(message, JoinObserverCommand.class);
+                UserCommandHandler.handleJoinObserver(session, joinObserverCommand);
+                break;
+            case MAKE_MOVE:
+                MakeMoveCommand makeMoveCommand = new Gson().fromJson(message, MakeMoveCommand.class);
+                UserCommandHandler.handleMakeMove(session, makeMoveCommand);
+                break;
+            case LEAVE:
+                LeaveCommand leaveCommand = new Gson().fromJson(message, LeaveCommand.class);
+                UserCommandHandler.handleLeave(session, leaveCommand);
+                break;
+            case RESIGN:
+                ResignCommand resignCommand = new Gson().fromJson(message, ResignCommand.class);
+                UserCommandHandler.handleResign(session, resignCommand);
+                break;
+            default:
+                throw new IllegalArgumentException("Incoming message does not inherit from UserGameCommand");
+        }
     }
 }
