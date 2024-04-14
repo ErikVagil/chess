@@ -13,7 +13,7 @@ import server.PlayerConnection.PlayerType;
 import webSocketMessages.serverMessages.*;
 import webSocketMessages.userCommands.*;
 import dataAccess.*;
-import model.GameData;
+import model.*;
 
 public class UserCommandHandler {
     private static HashMap<Integer, ArrayList<PlayerConnection>> playerConnections = new HashMap<>();
@@ -22,25 +22,43 @@ public class UserCommandHandler {
         // Check auth
         DAO dao = new QueryDAO();
         String authToken = command.getAuthString();
-        if (dao.getAuth(authToken) == null) {
-            throw new RuntimeException("authToken not found");
+        AuthData authData = dao.getAuth(authToken);
+        if (authData == null) {
+            sendErrorMessage(session, "User not authenticated");
+            return;
         }
 
-        // Store PlayerConnection for later lookup
+        // Check gameID
         int gameID = command.getGameID();
         GameData gameData = dao.getGame(gameID);
-        ChessGame game = gameData.game;
+        if (gameData == null) {
+            sendErrorMessage(session, "Invalid gameID");
+            return;
+        }
+
+        // Check correct color and player exists in database
         TeamColor playerColor = command.getPlayerColor();
+        String username = authData.username;
+        if (playerColor == TeamColor.WHITE) {
+            if (!username.equals(gameData.whiteUsername)) {
+                sendErrorMessage(session, "Color already in use");
+            } else if (gameData.whiteUsername == null) {
+                sendErrorMessage(session, "Invalid player");
+            }
+        } else {
+            if (!username.equals(gameData.blackUsername)) {
+                sendErrorMessage(session, "Color already in use");
+            } else if (gameData.blackUsername == null) {
+                sendErrorMessage(session, "Invalid player");
+            }
+        }
+        
+        // Store PlayerConnection for later lookup
+        ChessGame game = gameData.game;
 
         PlayerConnection connectionToSave;
-        String username;
-        if (playerColor == TeamColor.WHITE) {
-            username = gameData.whiteUsername;
-            connectionToSave = new PlayerConnection(session, gameID, username, PlayerType.WHITE_PLAYER);
-        } else {
-            username = gameData.blackUsername;
-            connectionToSave = new PlayerConnection(session, gameID, username, PlayerType.BLACK_PLAYER);
-        }
+        PlayerType playerType = playerColor == TeamColor.WHITE ? PlayerType.WHITE_PLAYER : PlayerType.BLACK_PLAYER;
+        connectionToSave = new PlayerConnection(session, gameID, username, playerType);
         
         if (!playerConnections.containsKey(gameID)) {
             playerConnections.put(gameID, new ArrayList<PlayerConnection>());
@@ -79,5 +97,12 @@ public class UserCommandHandler {
 
     public static void handleResign(Session session, ResignCommand command) throws Exception {
 
+    }
+
+    private static void sendErrorMessage(Session session, String message) throws Exception {
+        ErrorMessage errorMessage = new ErrorMessage(message);
+        String errorJson = new Gson().toJson(errorMessage);
+        session.getRemote().sendString(errorJson);
+        throw new RuntimeException(message);
     }
 }
