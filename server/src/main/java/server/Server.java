@@ -10,7 +10,6 @@ import spark.Spark;
 
 import webSocketMessages.userCommands.*;
 import webSocketMessages.userCommands.UserGameCommand.CommandType;
-import webSocketMessages.serverMessages.*;
 
 @WebSocket
 public class Server {
@@ -19,6 +18,9 @@ public class Server {
         Spark.port(desiredPort);
 
         Spark.staticFiles.location("web");
+        
+        // WebSocket upgrade endpoint
+        Spark.webSocket("/connect", Server.class);
 
         // Register your endpoints and handle exceptions here.
         Spark.delete("/db", ClearHandler::clear);
@@ -28,9 +30,6 @@ public class Server {
         Spark.get("/game", ListGamesHandler::listGames);
         Spark.post("/game", CreateGameHandler::createGame);
         Spark.put("/game", JoinGameHandler::joinGame);
-
-        // WebSocket upgrade endpoint
-        Spark.webSocket("/connect", Server.class);
 
         Spark.awaitInitialization();
         return Spark.port();
