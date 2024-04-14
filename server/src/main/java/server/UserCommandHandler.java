@@ -42,14 +42,18 @@ public class UserCommandHandler {
         if (playerColor == TeamColor.WHITE) {
             if (!username.equals(gameData.whiteUsername)) {
                 sendErrorMessage(session, "Color already in use");
+                return;
             } else if (gameData.whiteUsername == null) {
                 sendErrorMessage(session, "Invalid player");
+                return;
             }
         } else {
             if (!username.equals(gameData.blackUsername)) {
                 sendErrorMessage(session, "Color already in use");
+                return;
             } else if (gameData.blackUsername == null) {
                 sendErrorMessage(session, "Invalid player");
+                return;
             }
         }
         
@@ -84,7 +88,51 @@ public class UserCommandHandler {
     }
 
     public static void handleJoinObserver(Session session, JoinObserverCommand command) throws Exception {
+        // Check auth
+        DAO dao = new QueryDAO();
+        String authToken = command.getAuthString();
+        AuthData authData = dao.getAuth(authToken);
+        if (authData == null) {
+            sendErrorMessage(session, "User not authenticated");
+            return;
+        }
 
+        // Check gameID
+        int gameID = command.getGameID();
+        GameData gameData = dao.getGame(gameID);
+        if (gameData == null) {
+            sendErrorMessage(session, "Invalid gameID");
+            return;
+        }
+        
+        // Store PlayerConnection for later lookup
+        ChessGame game = gameData.game;
+        String username = authData.username;
+
+        PlayerConnection connectionToSave;
+        connectionToSave = new PlayerConnection(session, gameID, username, PlayerType.OBSERVER);
+        
+        if (!playerConnections.containsKey(gameID)) {
+            playerConnections.put(gameID, new ArrayList<PlayerConnection>());
+        }
+        playerConnections.get(gameID).add(connectionToSave);
+
+        // Send load game response
+        LoadGameMessage<ChessGame> loadResponse = new LoadGameMessage<ChessGame>(game);
+        String responseJson = new Gson().toJson(loadResponse);
+        session.getRemote().sendString(responseJson);
+
+        // Send notification to other players
+        NotificationMessage joinNotification = new NotificationMessage("Observer " + username + " has joined the game.");
+        String notificationJson = new Gson().toJson(joinNotification);
+
+        for (PlayerConnection player : playerConnections.get(gameID)) {
+            if (player.getSession().equals(session)) {
+                continue;
+            }
+            
+            player.getSession().getRemote().sendString(notificationJson);
+        }
     }
 
     public static void handleMakeMove(Session session, MakeMoveCommand command) throws Exception {
