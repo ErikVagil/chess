@@ -178,7 +178,38 @@ public class UserCommandHandler {
     }
 
     public static void handleResign(Session session, ResignCommand command) throws Exception {
+        // Check if player is in game and not observer
+        PlayerConnection player = findPlayerByAuth(command.getGameID(), command.getAuthString());
+        if (player == null) {
+            sendErrorMessage(session, "Player is not in game");
+            return;
+        } else if (player.getPlayerType() == PlayerType.OBSERVER) {
+            sendErrorMessage(session, "Observers cannot resign");
+            return;
+        }
 
+        // Get game object
+        int gameID = command.getGameID();
+        DAO dao = new QueryDAO();
+        GameData gameData = dao.getGame(gameID);
+        ChessGame game = gameData.game;
+
+        // Check if game is over
+        if (game.getIsGameOver()) {
+            sendErrorMessage(session, "Game is already over");
+            return;
+        }
+
+        // Resign
+        game.setIsGameOver(true);
+        GameData newGameData = new GameData(gameID, 
+                                            gameData.whiteUsername, 
+                                            gameData.blackUsername, 
+                                            gameData.gameName, 
+                                            game);
+        dao.updateGame(newGameData);
+        String username = player.getUsername();
+        sendNotifcationAllPlayers(gameID, username + " has resigned the game.");
     }
 
     private static <T> void sendLoadGameMessage(Session session, T game) throws Exception {
