@@ -3,11 +3,7 @@ package chess.pieces;
 import java.util.Collection;
 import java.util.HashSet;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessMove;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
 
 public class BishopCalculator implements Calculator {
     private ChessGame.TeamColor color;
@@ -29,59 +25,16 @@ public class BishopCalculator implements Calculator {
         Collection<ChessMove> moveList = new HashSet<ChessMove>();
 
         // North-east direction
-        moveList.addAll(this.directionMoves(board, myPosition, 1, 1));
+        moveList.addAll(CalculatorFactory.directionMoves(board, myPosition, 1, 1, color));
 
         // South-east direction
-        moveList.addAll(this.directionMoves(board, myPosition, 1, -1));
+        moveList.addAll(CalculatorFactory.directionMoves(board, myPosition, 1, -1, color));
 
         // South-west direction
-        moveList.addAll(directionMoves(board, myPosition, -1, -1));
+        moveList.addAll(CalculatorFactory.directionMoves(board, myPosition, -1, -1, color));
         
         // North-west direction
-        moveList.addAll(directionMoves(board, myPosition, -1, 1));
-
-        return moveList;
-    }
-
-    /**
-     * Returns all the moves a piece can make in a (row, column) direction
-     * 
-     * @param board the current game board
-     * @param myPosition the position of the chess piece
-     * @param directionCol the number of steps in the column direction
-     * @param directionRow the number of steps in the row direction
-     * @return a collection of chess moves
-     */
-    private Collection<ChessMove> directionMoves(ChessBoard board, ChessPosition myPosition, int directionCol, int directionRow) {
-        Collection<ChessMove> moveList = new HashSet<ChessMove>();
-        int row = myPosition.getRow();
-        int col = myPosition.getColumn();
-
-        int offsetCol = 0;
-        int offsetRow = 0;
-        while (true) {
-            offsetCol += directionCol;
-            offsetRow += directionRow;
-
-            // Check for bounds
-            if ((col + offsetCol > 8 || col + offsetCol < 1) || (row + offsetRow > 8 || row + offsetRow < 1)) {
-                break;
-            }
-
-            // Check for empty space
-            ChessPosition endPosition = new ChessPosition(row + offsetRow, col + offsetCol);
-            ChessPiece otherPiece = board.getPiece(endPosition);
-            if (otherPiece == null) {
-                // Empty space
-                moveList.add(new ChessMove(myPosition, endPosition));
-            } else {
-                // Hit a piece
-                if (otherPiece.getTeamColor() != this.color) {
-                    moveList.add(new ChessMove(myPosition, endPosition));
-                }
-                break; // Can't go past pieces
-            }
-        }
+        moveList.addAll(CalculatorFactory.directionMoves(board, myPosition, -1, 1, color));
 
         return moveList;
     }

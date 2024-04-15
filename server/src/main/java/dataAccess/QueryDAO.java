@@ -20,16 +20,6 @@ import model.GameData;
 import model.UserData;
 
 public class QueryDAO implements DAO {
-    /*
-        String statement = "";
-        try (Connection conn = DatabaseManager.getConnection()) {
-            try (PreparedStatement preparedStatement = conn.prepareStatement(statement)) {
-                preparedStatement.executeUpdate();
-            }
-        } catch (SQLException e) {
-            throw new DataAccessException(String.format("Unable to access database: %s", e.getMessage()));
-        }
-    */
     public QueryDAO() {
         try {
             configureDatabase();

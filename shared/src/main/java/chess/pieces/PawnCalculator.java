@@ -75,8 +75,7 @@ public class PawnCalculator implements Calculator {
         }
         if (otherPiece == null) {
             // Empty space, check for promotion
-            if ((this.color == TeamColor.WHITE && endPosition.getRow() == 8) ||
-                (this.color == TeamColor.BLACK && endPosition.getRow() == 1)) {
+            if (canPromote(endPosition)) {
                 moveList.add(new ChessMove(myPosition, endPosition, PieceType.BISHOP));
                 moveList.add(new ChessMove(myPosition, endPosition, PieceType.ROOK));
                 moveList.add(new ChessMove(myPosition, endPosition, PieceType.KNIGHT));
@@ -106,11 +105,9 @@ public class PawnCalculator implements Calculator {
             if ((col - 1 >= 1) && (row + 1 <= 8)) {
                 // Check if opposite color piece occupies space
                 ChessPosition endPosition = new ChessPosition(row + 1, col - 1);
-                if (board.getPiece(endPosition) != null && 
-                    board.getPiece(endPosition).getTeamColor() == TeamColor.BLACK) {
+                if (canAttack(board, endPosition, TeamColor.BLACK)) {
                     // Check for promotion
-                    if ((this.color == TeamColor.WHITE && endPosition.getRow() == 8) ||
-                        (this.color == TeamColor.BLACK && endPosition.getRow() == 1)) {
+                    if (canPromote(endPosition)) {
                         moveList.add(new ChessMove(myPosition, endPosition, PieceType.BISHOP));
                         moveList.add(new ChessMove(myPosition, endPosition, PieceType.ROOK));
                         moveList.add(new ChessMove(myPosition, endPosition, PieceType.KNIGHT));
@@ -126,11 +123,9 @@ public class PawnCalculator implements Calculator {
             if ((col + 1 <= 8) && (row + 1 <= 8)) {
                 // Check if opposite color piece occupies space
                 ChessPosition endPosition = new ChessPosition(row + 1, col + 1);
-                if (board.getPiece(endPosition) != null && 
-                    board.getPiece(endPosition).getTeamColor() == TeamColor.BLACK) {
+                if (canAttack(board, endPosition, TeamColor.BLACK)) {
                     // Check for promotion
-                    if ((this.color == TeamColor.WHITE && endPosition.getRow() == 8) ||
-                        (this.color == TeamColor.BLACK && endPosition.getRow() == 1)) {
+                    if (canPromote(endPosition)) {
                         moveList.add(new ChessMove(myPosition, endPosition, PieceType.BISHOP));
                         moveList.add(new ChessMove(myPosition, endPosition, PieceType.ROOK));
                         moveList.add(new ChessMove(myPosition, endPosition, PieceType.KNIGHT));
@@ -146,11 +141,9 @@ public class PawnCalculator implements Calculator {
             if ((col - 1 >= 1) && (row - 1 >= 1)) {
                 // Check if opposite color piece occupies space
                 ChessPosition endPosition = new ChessPosition(row - 1, col - 1);
-                if (board.getPiece(endPosition) != null && 
-                    board.getPiece(endPosition).getTeamColor() == TeamColor.WHITE) {
+                if (canAttack(board, endPosition, TeamColor.WHITE)) {
                     // Check for promotion
-                    if ((this.color == TeamColor.WHITE && endPosition.getRow() == 8) ||
-                        (this.color == TeamColor.BLACK && endPosition.getRow() == 1)) {
+                    if (canPromote(endPosition)) {
                         moveList.add(new ChessMove(myPosition, endPosition, PieceType.BISHOP));
                         moveList.add(new ChessMove(myPosition, endPosition, PieceType.ROOK));
                         moveList.add(new ChessMove(myPosition, endPosition, PieceType.KNIGHT));
@@ -166,11 +159,9 @@ public class PawnCalculator implements Calculator {
             if ((col + 1 <= 8) && (row - 1 >= 1)) {
                 // Check if opposite color piece occupies space
                 ChessPosition endPosition = new ChessPosition(row - 1, col + 1);
-                if (board.getPiece(endPosition) != null && 
-                    board.getPiece(endPosition).getTeamColor() == TeamColor.WHITE) {
+                if (canAttack(board, endPosition, TeamColor.WHITE)) {
                     // Check for promotion
-                    if ((this.color == TeamColor.WHITE && endPosition.getRow() == 8) ||
-                        (this.color == TeamColor.BLACK && endPosition.getRow() == 1)) {
+                    if (canPromote(endPosition)) {
                         moveList.add(new ChessMove(myPosition, endPosition, PieceType.BISHOP));
                         moveList.add(new ChessMove(myPosition, endPosition, PieceType.ROOK));
                         moveList.add(new ChessMove(myPosition, endPosition, PieceType.KNIGHT));
@@ -183,5 +174,13 @@ public class PawnCalculator implements Calculator {
         }
 
         return moveList;
+    }
+
+    private boolean canAttack(ChessBoard board, ChessPosition endPosition, TeamColor oppositeTeam) {
+        return board.getPiece(endPosition) != null && board.getPiece(endPosition).getTeamColor() == oppositeTeam;
+    }
+
+    private boolean canPromote(ChessPosition endPosition) {
+        return this.color == TeamColor.WHITE && endPosition.getRow() == 8 || this.color == TeamColor.BLACK && endPosition.getRow() == 1;
     }
 }

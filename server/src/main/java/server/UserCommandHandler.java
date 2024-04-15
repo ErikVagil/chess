@@ -19,20 +19,14 @@ public class UserCommandHandler {
     private static HashMap<Integer, ArrayList<PlayerConnection>> playerConnections = new HashMap<>();
 
     public static void handleJoinPlayer(Session session, JoinPlayerCommand command) throws Exception {
-        // Check auth
         DAO dao = new QueryDAO();
         String authToken = command.getAuthString();
         AuthData authData = dao.getAuth(authToken);
-        if (authData == null) {
-            sendErrorMessage(session, "User not authenticated");
-            return;
-        }
-
-        // Check gameID
         int gameID = command.getGameID();
         GameData gameData = dao.getGame(gameID);
-        if (gameData == null) {
-            sendErrorMessage(session, "Invalid gameID");
+        try {
+            checkCanJoin(session, authToken, gameID);
+        } catch (Exception e) {
             return;
         }
 
@@ -77,20 +71,14 @@ public class UserCommandHandler {
     }
 
     public static void handleJoinObserver(Session session, JoinObserverCommand command) throws Exception {
-        // Check auth
         DAO dao = new QueryDAO();
         String authToken = command.getAuthString();
         AuthData authData = dao.getAuth(authToken);
-        if (authData == null) {
-            sendErrorMessage(session, "User not authenticated");
-            return;
-        }
-
-        // Check gameID
         int gameID = command.getGameID();
         GameData gameData = dao.getGame(gameID);
-        if (gameData == null) {
-            sendErrorMessage(session, "Invalid gameID");
+        try {
+            checkCanJoin(session, authToken, gameID);
+        } catch (Exception e) {
             return;
         }
         
@@ -241,6 +229,23 @@ public class UserCommandHandler {
         dao.updateGame(newGameData);
         String username = player.getUsername();
         sendNotifcationAllPlayers(gameID, username + " has resigned the game.");
+    }
+
+    private static void checkCanJoin(Session session, String authToken, int gameID) throws Exception {
+        // Check auth
+        DAO dao = new QueryDAO();
+        AuthData authData = dao.getAuth(authToken);
+        if (authData == null) {
+            sendErrorMessage(session, "User not authenticated");
+            return;
+        }
+        
+        // Check gameID
+        GameData gameData = dao.getGame(gameID);
+        if (gameData == null) {
+            sendErrorMessage(session, "Invalid gameID");
+            return;
+        }
     }
 
     private static <T> void sendLoadGameMessage(Session session, T game) throws Exception {
