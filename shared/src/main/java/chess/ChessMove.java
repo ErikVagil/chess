@@ -51,13 +51,10 @@ public class ChessMove {
     @Override
     public String toString() {
         StringBuilder output = new StringBuilder();
-        output.append("ChessMove(");
-        output.append(this.start);
-        output.append(", ");
-        output.append(this.end);
-        output.append(", ");
-        output.append(this.promoPieceType);
-        output.append(")");
+        output.append((char) start.getColumn() + 96);
+        output.append(start.getRow());
+        output.append((char) end.getColumn() + 96);
+        output.append(end.getRow());
         return output.toString();
     }
 

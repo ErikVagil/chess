@@ -17,6 +17,7 @@ public class PlayerConnection {
     public PlayerConnection(Session session, int gameID, String username, PlayerType playerType) {
         this.session = session;
         this.gameID = gameID;
+        this.username = username;
         this.playerType = playerType;
     }
 

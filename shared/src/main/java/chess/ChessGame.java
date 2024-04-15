@@ -14,6 +14,7 @@ import chess.ChessPiece.PieceType;
 public class ChessGame {
     private TeamColor teamTurn = TeamColor.WHITE;
     private ChessBoard board = new ChessBoard();
+    private boolean isGameOver = false;
 
     public ChessGame() {
 
@@ -33,6 +34,14 @@ public class ChessGame {
      */
     public void setTeamTurn(TeamColor team) {
         this.teamTurn = team;
+    }
+
+    public boolean getIsGameOver() {
+        return isGameOver;
+    }
+
+    public void setIsGameOver(boolean gameOver) {
+        isGameOver = gameOver;
     }
 
     /**
@@ -140,6 +149,14 @@ public class ChessGame {
         } else {
             this.teamTurn = TeamColor.WHITE;
         }
+
+        // Check if the game is over
+        if (isInCheckmate(TeamColor.WHITE) ||
+            isInCheckmate(TeamColor.BLACK) ||
+            isInStalemate(TeamColor.WHITE) ||
+            isInStalemate(TeamColor.BLACK)) {
+                isGameOver = true;
+            }
     }
 
     /**
@@ -203,10 +220,18 @@ public class ChessGame {
         // Team is not in check
         if (this.isInCheck(teamColor)) return false;
 
-        // King has no valid moves
-        ChessPosition kingPosition = this.findKingPosition(this.board, teamColor);
-        if (this.validMoves(kingPosition).size() == 0) return true;
-        else return false;
+        // Color has no valid moves
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPosition currentPosition = new ChessPosition(row, col);
+                ChessPiece currentPiece = board.getPiece(currentPosition);
+                if (currentPiece == null || currentPiece.getTeamColor() != teamColor) continue;
+                if (validMoves(currentPosition).size() != 0) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
@@ -216,6 +241,12 @@ public class ChessGame {
      */
     public void setBoard(ChessBoard board) {
         this.board = board;
+        if (isInCheckmate(TeamColor.WHITE) ||
+            isInCheckmate(TeamColor.BLACK) ||
+            isInStalemate(TeamColor.WHITE) ||
+            isInStalemate(TeamColor.BLACK)) {
+                isGameOver = true;
+            }
     }
 
     /**

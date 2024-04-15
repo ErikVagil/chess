@@ -7,7 +7,7 @@ import org.eclipse.jetty.websocket.api.*;
 
 import com.google.gson.Gson;
 
-import chess.ChessGame;
+import chess.*;
 import chess.ChessGame.TeamColor;
 import server.PlayerConnection.PlayerType;
 import webSocketMessages.serverMessages.*;
@@ -70,21 +70,10 @@ public class UserCommandHandler {
         playerConnections.get(gameID).add(connectionToSave);
 
         // Send load game response
-        LoadGameMessage<ChessGame> loadResponse = new LoadGameMessage<ChessGame>(game);
-        String responseJson = new Gson().toJson(loadResponse);
-        session.getRemote().sendString(responseJson);
+        sendLoadGameMessage(session, game);
 
         // Send notification to other players
-        NotificationMessage joinNotification = new NotificationMessage("Player " + username + " has joined the game.");
-        String notificationJson = new Gson().toJson(joinNotification);
-
-        for (PlayerConnection player : playerConnections.get(gameID)) {
-            if (player.getSession().equals(session)) {
-                continue;
-            }
-            
-            player.getSession().getRemote().sendString(notificationJson);
-        }
+        sendNotifcationOtherPlayers(session, gameID, "Player " + username + " has joined the game.");
     }
 
     public static void handleJoinObserver(Session session, JoinObserverCommand command) throws Exception {
@@ -118,12 +107,95 @@ public class UserCommandHandler {
         playerConnections.get(gameID).add(connectionToSave);
 
         // Send load game response
-        LoadGameMessage<ChessGame> loadResponse = new LoadGameMessage<ChessGame>(game);
-        String responseJson = new Gson().toJson(loadResponse);
-        session.getRemote().sendString(responseJson);
+        sendLoadGameMessage(session, game);
 
         // Send notification to other players
-        NotificationMessage joinNotification = new NotificationMessage("Observer " + username + " has joined the game.");
+        sendNotifcationOtherPlayers(session, gameID, "Observer " + username + " has joined the game.");
+    }
+
+    public static void handleMakeMove(Session session, MakeMoveCommand command) throws Exception {
+        // Check if player is in game and not observer
+        PlayerConnection player = findPlayerByAuth(command.getGameID(), command.getAuthString());
+        if (player == null) {
+            sendErrorMessage(session, "Player is not in game");
+            return;
+        } else if (player.getPlayerType() == PlayerType.OBSERVER) {
+            sendErrorMessage(session, "Observers cannot make moves");
+            return;
+        }
+
+        // Get game object
+        int gameID = command.getGameID();
+        DAO dao = new QueryDAO();
+        GameData gameData = dao.getGame(gameID);
+        ChessGame game = gameData.game;
+
+        // Check if game is over
+        if (game.getIsGameOver()) {
+            sendErrorMessage(session, "Game is over");
+            return;
+        }
+
+        // Check if player's turn
+        TeamColor teamTurn = game.getTeamTurn();
+        TeamColor playerColor = player.getPlayerType() == PlayerType.WHITE_PLAYER ? TeamColor.WHITE : TeamColor.BLACK;
+        if (teamTurn != playerColor) {
+            sendErrorMessage(session, "Cannot make moves out of turn");
+            return;
+        }
+
+        // Make move and check validity
+        ChessMove move = command.getMove();
+        try {
+            game.makeMove(move);
+            GameData newGameData = new GameData(gameID, 
+                                                gameData.whiteUsername, 
+                                                gameData.blackUsername, 
+                                                gameData.gameName, 
+                                                game);
+            dao.updateGame(newGameData);
+            for (PlayerConnection playerInRoom : playerConnections.get(gameID)) {
+                sendLoadGameMessage(playerInRoom.getSession(), game);
+            }
+            if (teamTurn == TeamColor.WHITE) {
+                sendNotifcationOtherPlayers(session, gameID, "White move " + move.toString());
+            } else {
+                sendNotifcationOtherPlayers(session, gameID, "Black move " + move.toString());
+            }
+        } catch (InvalidMoveException e) {
+            sendErrorMessage(session, "Invalid move");
+            return;
+        }
+
+        // Check if game is over after move
+        if (game.getIsGameOver()) {
+            sendNotifcationAllPlayers(gameID, "Game over");
+        }
+    }
+
+    public static void handleLeave(Session session, LeaveCommand command) throws Exception {
+
+    }
+
+    public static void handleResign(Session session, ResignCommand command) throws Exception {
+
+    }
+
+    private static <T> void sendLoadGameMessage(Session session, T game) throws Exception {
+        LoadGameMessage<T> loadResponse = new LoadGameMessage<T>(game);
+        String responseJson = new Gson().toJson(loadResponse);
+        session.getRemote().sendString(responseJson);
+    }
+
+    private static void sendErrorMessage(Session session, String message) throws Exception {
+        ErrorMessage errorMessage = new ErrorMessage(message);
+        String errorJson = new Gson().toJson(errorMessage);
+        session.getRemote().sendString(errorJson);
+        throw new RuntimeException(message);
+    }
+
+    private static void sendNotifcationOtherPlayers(Session session, int gameID, String message) throws Exception {
+        NotificationMessage joinNotification = new NotificationMessage(message);
         String notificationJson = new Gson().toJson(joinNotification);
 
         for (PlayerConnection player : playerConnections.get(gameID)) {
@@ -135,22 +207,25 @@ public class UserCommandHandler {
         }
     }
 
-    public static void handleMakeMove(Session session, MakeMoveCommand command) throws Exception {
+    private static void sendNotifcationAllPlayers(int gameID, String message) throws Exception {
+        NotificationMessage joinNotification = new NotificationMessage(message);
+        String notificationJson = new Gson().toJson(joinNotification);
 
+        for (PlayerConnection player : playerConnections.get(gameID)) {
+            player.getSession().getRemote().sendString(notificationJson);
+        }
     }
 
-    public static void handleLeave(Session session, LeaveCommand command) throws Exception {
-
-    }
-
-    public static void handleResign(Session session, ResignCommand command) throws Exception {
-
-    }
-
-    private static void sendErrorMessage(Session session, String message) throws Exception {
-        ErrorMessage errorMessage = new ErrorMessage(message);
-        String errorJson = new Gson().toJson(errorMessage);
-        session.getRemote().sendString(errorJson);
-        throw new RuntimeException(message);
+    private static PlayerConnection findPlayerByAuth(int gameID, String authToken) throws Exception {
+        DAO dao = new QueryDAO();
+        AuthData authData = dao.getAuth(authToken);
+        String username = authData.username;
+        ArrayList<PlayerConnection> gameConnections = playerConnections.get(gameID);
+        for (PlayerConnection player : gameConnections) {
+            if (username.equals(player.getUsername())) {
+                return player;
+            }
+        }
+        return null;
     }
 }

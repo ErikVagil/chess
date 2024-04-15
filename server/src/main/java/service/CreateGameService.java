@@ -2,6 +2,7 @@ package service;
 
 import java.util.Random;
 
+import chess.ChessBoard;
 import chess.ChessGame;
 import dataAccess.*;
 import model.AuthData;
@@ -20,7 +21,11 @@ public class CreateGameService {
             gameID = new Random().nextInt(1_000_000_000) + 100_000_000;
             if (dao.getGame(gameID) == null) break;
         }
-        GameData newGame = new GameData(gameID, null, null, gameName, new ChessGame());
+        ChessBoard freshBoard = new ChessBoard();
+        freshBoard.resetBoard();
+        ChessGame freshGame = new ChessGame();
+        freshGame.setBoard(freshBoard);
+        GameData newGame = new GameData(gameID, null, null, gameName, freshGame);
         dao.createGame(newGame);
         return gameID;
     }
