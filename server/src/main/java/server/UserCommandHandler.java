@@ -174,7 +174,38 @@ public class UserCommandHandler {
     }
 
     public static void handleLeave(Session session, LeaveCommand command) throws Exception {
+        // Check if player is in game
+        PlayerConnection player = findPlayerByAuth(command.getGameID(), command.getAuthString());
+        if (player == null) {
+            sendErrorMessage(session, "Player is not in game");
+            return;
+        }
 
+        // Get game object
+        int gameID = command.getGameID();
+        DAO dao = new QueryDAO();
+        GameData gameData = dao.getGame(gameID);
+        ChessGame game = gameData.game;
+
+        // Remove player from the game and close the connection
+        if (player.getPlayerType() == PlayerType.WHITE_PLAYER) {
+            GameData newGameData = new GameData(gameID, 
+                                        null, 
+                                        gameData.blackUsername, 
+                                        gameData.gameName, 
+                                        game);
+            dao.updateGame(newGameData);
+        } else if (player.getPlayerType() == PlayerType.OBSERVER) {
+            GameData newGameData = new GameData(gameID, 
+                                        gameData.whiteUsername, 
+                                        null, 
+                                        gameData.gameName, 
+                                        game);
+            dao.updateGame(newGameData);
+        }
+        String username = player.getUsername();
+        sendNotifcationOtherPlayers(session, gameID, username + " has left.");
+        removePlayerConnection(gameID, command.getAuthString());
     }
 
     public static void handleResign(Session session, ResignCommand command) throws Exception {
@@ -258,5 +289,17 @@ public class UserCommandHandler {
             }
         }
         return null;
+    }
+
+    private static void removePlayerConnection(int gameID, String authToken) throws Exception {
+        DAO dao = new QueryDAO();
+        AuthData authData = dao.getAuth(authToken);
+        String username = authData.username;
+        ArrayList<PlayerConnection> gameConnections = playerConnections.get(gameID);
+        for (PlayerConnection player : gameConnections) {
+            if (username.equals(player.getUsername())) {
+                gameConnections.remove(player);
+            }
+        }
     }
 }
