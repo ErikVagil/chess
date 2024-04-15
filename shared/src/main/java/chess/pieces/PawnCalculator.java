@@ -74,15 +74,7 @@ public class PawnCalculator implements Calculator {
             return moveList;
         }
         if (otherPiece == null) {
-            // Empty space, check for promotion
-            if (canPromote(endPosition)) {
-                moveList.add(new ChessMove(myPosition, endPosition, PieceType.BISHOP));
-                moveList.add(new ChessMove(myPosition, endPosition, PieceType.ROOK));
-                moveList.add(new ChessMove(myPosition, endPosition, PieceType.KNIGHT));
-                moveList.add(new ChessMove(myPosition, endPosition, PieceType.QUEEN));
-            } else {
-                moveList.add(new ChessMove(myPosition, endPosition));
-            }
+            addMove(myPosition, endPosition, moveList);
         }
         return moveList;
     }
@@ -106,15 +98,7 @@ public class PawnCalculator implements Calculator {
                 // Check if opposite color piece occupies space
                 ChessPosition endPosition = new ChessPosition(row + 1, col - 1);
                 if (canAttack(board, endPosition, TeamColor.BLACK)) {
-                    // Check for promotion
-                    if (canPromote(endPosition)) {
-                        moveList.add(new ChessMove(myPosition, endPosition, PieceType.BISHOP));
-                        moveList.add(new ChessMove(myPosition, endPosition, PieceType.ROOK));
-                        moveList.add(new ChessMove(myPosition, endPosition, PieceType.KNIGHT));
-                        moveList.add(new ChessMove(myPosition, endPosition, PieceType.QUEEN));
-                    } else {
-                        moveList.add(new ChessMove(myPosition, endPosition));
-                    }
+                    addMove(myPosition, endPosition, moveList);
                 }
             }
 
@@ -124,15 +108,7 @@ public class PawnCalculator implements Calculator {
                 // Check if opposite color piece occupies space
                 ChessPosition endPosition = new ChessPosition(row + 1, col + 1);
                 if (canAttack(board, endPosition, TeamColor.BLACK)) {
-                    // Check for promotion
-                    if (canPromote(endPosition)) {
-                        moveList.add(new ChessMove(myPosition, endPosition, PieceType.BISHOP));
-                        moveList.add(new ChessMove(myPosition, endPosition, PieceType.ROOK));
-                        moveList.add(new ChessMove(myPosition, endPosition, PieceType.KNIGHT));
-                        moveList.add(new ChessMove(myPosition, endPosition, PieceType.QUEEN));
-                    } else {
-                        moveList.add(new ChessMove(myPosition, endPosition));
-                    }
+                    addMove(myPosition, endPosition, moveList);
                 }
             }
         } else {
@@ -142,15 +118,7 @@ public class PawnCalculator implements Calculator {
                 // Check if opposite color piece occupies space
                 ChessPosition endPosition = new ChessPosition(row - 1, col - 1);
                 if (canAttack(board, endPosition, TeamColor.WHITE)) {
-                    // Check for promotion
-                    if (canPromote(endPosition)) {
-                        moveList.add(new ChessMove(myPosition, endPosition, PieceType.BISHOP));
-                        moveList.add(new ChessMove(myPosition, endPosition, PieceType.ROOK));
-                        moveList.add(new ChessMove(myPosition, endPosition, PieceType.KNIGHT));
-                        moveList.add(new ChessMove(myPosition, endPosition, PieceType.QUEEN));
-                    } else {
-                        moveList.add(new ChessMove(myPosition, endPosition));
-                    }
+                    addMove(myPosition, endPosition, moveList);
                 }
             }
 
@@ -160,15 +128,7 @@ public class PawnCalculator implements Calculator {
                 // Check if opposite color piece occupies space
                 ChessPosition endPosition = new ChessPosition(row - 1, col + 1);
                 if (canAttack(board, endPosition, TeamColor.WHITE)) {
-                    // Check for promotion
-                    if (canPromote(endPosition)) {
-                        moveList.add(new ChessMove(myPosition, endPosition, PieceType.BISHOP));
-                        moveList.add(new ChessMove(myPosition, endPosition, PieceType.ROOK));
-                        moveList.add(new ChessMove(myPosition, endPosition, PieceType.KNIGHT));
-                        moveList.add(new ChessMove(myPosition, endPosition, PieceType.QUEEN));
-                    } else {
-                        moveList.add(new ChessMove(myPosition, endPosition));
-                    }
+                    addMove(myPosition, endPosition, moveList);
                 }
             }
         }
@@ -182,5 +142,17 @@ public class PawnCalculator implements Calculator {
 
     private boolean canPromote(ChessPosition endPosition) {
         return this.color == TeamColor.WHITE && endPosition.getRow() == 8 || this.color == TeamColor.BLACK && endPosition.getRow() == 1;
+    }
+
+    private void addMove(ChessPosition myPosition, ChessPosition endPosition, Collection<ChessMove> moveList) {
+        // Check for promotion
+        if (canPromote(endPosition)) {
+            moveList.add(new ChessMove(myPosition, endPosition, PieceType.BISHOP));
+            moveList.add(new ChessMove(myPosition, endPosition, PieceType.ROOK));
+            moveList.add(new ChessMove(myPosition, endPosition, PieceType.KNIGHT));
+            moveList.add(new ChessMove(myPosition, endPosition, PieceType.QUEEN));
+        } else {
+            moveList.add(new ChessMove(myPosition, endPosition));
+        }
     }
 }
