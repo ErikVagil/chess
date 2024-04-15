@@ -36,11 +36,8 @@ public class ChessPosition {
     @Override
     public String toString() {
         StringBuilder output = new StringBuilder();
-        output.append("ChessPosition(");
-        output.append(this.row);
-        output.append(", ");
-        output.append(this.col);
-        output.append(")");
+        output.append((char) (col + 96));
+        output.append(row);
         return output.toString();
     }
 

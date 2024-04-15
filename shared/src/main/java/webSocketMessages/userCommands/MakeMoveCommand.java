@@ -8,7 +8,7 @@ public class MakeMoveCommand extends UserGameCommand {
 
     public MakeMoveCommand(String authToken, int gameID, ChessMove move) {
         super(authToken);
-        super.commandType = CommandType.JOIN_OBSERVER;
+        super.commandType = CommandType.MAKE_MOVE;
         this.gameID = gameID;
         this.move = move;
     }

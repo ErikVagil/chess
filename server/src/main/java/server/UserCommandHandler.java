@@ -16,10 +16,10 @@ import dataAccess.*;
 import model.*;
 
 public class UserCommandHandler {
+    private static DAO dao = new QueryDAO();
     private static HashMap<Integer, ArrayList<PlayerConnection>> playerConnections = new HashMap<>();
 
     public static void handleJoinPlayer(Session session, JoinPlayerCommand command) throws Exception {
-        DAO dao = new QueryDAO();
         String authToken = command.getAuthString();
         AuthData authData = dao.getAuth(authToken);
         int gameID = command.getGameID();
@@ -43,7 +43,7 @@ public class UserCommandHandler {
             }
         } else {
             if (!username.equals(gameData.blackUsername)) {
-                sendErrorMessage(session, "Color already in use");
+                sendErrorMessage(session, "Color already in use", true);
                 return;
             } else if (gameData.blackUsername == null) {
                 sendErrorMessage(session, "Invalid player");
@@ -60,6 +60,8 @@ public class UserCommandHandler {
         
         if (!playerConnections.containsKey(gameID)) {
             playerConnections.put(gameID, new ArrayList<PlayerConnection>());
+        } else if (findPlayerByAuth(gameID, authToken) != null) {
+            removePlayerConnection(gameID, authToken);
         }
         playerConnections.get(gameID).add(connectionToSave);
 
@@ -71,7 +73,6 @@ public class UserCommandHandler {
     }
 
     public static void handleJoinObserver(Session session, JoinObserverCommand command) throws Exception {
-        DAO dao = new QueryDAO();
         String authToken = command.getAuthString();
         AuthData authData = dao.getAuth(authToken);
         int gameID = command.getGameID();
@@ -91,6 +92,8 @@ public class UserCommandHandler {
         
         if (!playerConnections.containsKey(gameID)) {
             playerConnections.put(gameID, new ArrayList<PlayerConnection>());
+        } else if (findPlayerByAuth(gameID, authToken) != null) {
+            removePlayerConnection(gameID, authToken);
         }
         playerConnections.get(gameID).add(connectionToSave);
 
@@ -114,7 +117,6 @@ public class UserCommandHandler {
 
         // Get game object
         int gameID = command.getGameID();
-        DAO dao = new QueryDAO();
         GameData gameData = dao.getGame(gameID);
         ChessGame game = gameData.game;
 
@@ -155,13 +157,28 @@ public class UserCommandHandler {
             return;
         }
 
+        // Check if someone is in check, checkmate, or stalemate after move
+        if (game.isInCheckmate(TeamColor.WHITE)) {
+            sendNotifcationAllPlayers(gameID, "White is in checkmate");
+        } else if (game.isInCheckmate(TeamColor.BLACK)) {
+            sendNotifcationAllPlayers(gameID, "Black is in checkmate");
+        } else if ((game.isInCheck(TeamColor.WHITE))) {
+            sendNotifcationAllPlayers(gameID, "White is in check");
+        } else if (game.isInCheck(TeamColor.BLACK)) {
+            sendNotifcationAllPlayers(gameID, "Black is in check");
+        } else if (game.isInStalemate(TeamColor.WHITE)) {
+            sendNotifcationAllPlayers(gameID, "White is in stalemate");
+        } else if (game.isInStalemate(TeamColor.BLACK)) {
+            sendNotifcationAllPlayers(gameID, "Black is in stalemate");
+        }
+
         // Check if game is over after move
         if (game.getIsGameOver()) {
             sendNotifcationAllPlayers(gameID, "Game over");
         }
     }
 
-    public static void handleLeave(Session session, LeaveCommand command) throws Exception {
+    public synchronized static void handleLeave(Session session, LeaveCommand command) throws Exception {
         // Check if player is in game
         PlayerConnection player = findPlayerByAuth(command.getGameID(), command.getAuthString());
         if (player == null) {
@@ -183,7 +200,7 @@ public class UserCommandHandler {
                                         gameData.gameName, 
                                         game);
             dao.updateGame(newGameData);
-        } else if (player.getPlayerType() == PlayerType.OBSERVER) {
+        } else if (player.getPlayerType() == PlayerType.BLACK_PLAYER) {
             GameData newGameData = new GameData(gameID, 
                                         gameData.whiteUsername, 
                                         null, 
@@ -233,7 +250,6 @@ public class UserCommandHandler {
 
     private static void checkCanJoin(Session session, String authToken, int gameID) throws Exception {
         // Check auth
-        DAO dao = new QueryDAO();
         AuthData authData = dao.getAuth(authToken);
         if (authData == null) {
             sendErrorMessage(session, "User not authenticated");
@@ -248,8 +264,8 @@ public class UserCommandHandler {
         }
     }
 
-    private static <T> void sendLoadGameMessage(Session session, T game) throws Exception {
-        LoadGameMessage<T> loadResponse = new LoadGameMessage<T>(game);
+    private static void sendLoadGameMessage(Session session, ChessGame game) throws Exception {
+        LoadGameMessage loadResponse = new LoadGameMessage(game);
         String responseJson = new Gson().toJson(loadResponse);
         session.getRemote().sendString(responseJson);
     }
@@ -258,7 +274,12 @@ public class UserCommandHandler {
         ErrorMessage errorMessage = new ErrorMessage(message);
         String errorJson = new Gson().toJson(errorMessage);
         session.getRemote().sendString(errorJson);
-        throw new RuntimeException(message);
+    }
+
+    private static void sendErrorMessage(Session session, String message, boolean isCriticalError) throws Exception {
+        ErrorMessage errorMessage = new ErrorMessage(message, isCriticalError);
+        String errorJson = new Gson().toJson(errorMessage);
+        session.getRemote().sendString(errorJson);
     }
 
     private static void sendNotifcationOtherPlayers(Session session, int gameID, String message) throws Exception {
@@ -284,7 +305,6 @@ public class UserCommandHandler {
     }
 
     private static PlayerConnection findPlayerByAuth(int gameID, String authToken) throws Exception {
-        DAO dao = new QueryDAO();
         AuthData authData = dao.getAuth(authToken);
         String username = authData.username;
         ArrayList<PlayerConnection> gameConnections = playerConnections.get(gameID);
@@ -297,14 +317,17 @@ public class UserCommandHandler {
     }
 
     private static void removePlayerConnection(int gameID, String authToken) throws Exception {
-        DAO dao = new QueryDAO();
         AuthData authData = dao.getAuth(authToken);
         String username = authData.username;
         ArrayList<PlayerConnection> gameConnections = playerConnections.get(gameID);
+        ArrayList<PlayerConnection> newConnections = new ArrayList<>();
         for (PlayerConnection player : gameConnections) {
-            if (username.equals(player.getUsername())) {
-                gameConnections.remove(player);
+            if (!username.equals(player.getUsername())) {
+                newConnections.add(player);
+            } else {
+                player.getSession().close();
             }
         }
+        playerConnections.put(gameID, newConnections);
     }
 }

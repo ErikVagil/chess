@@ -10,6 +10,7 @@ public class ServerFacade {
     private int port;
     private String sessionToken;
     private String displayName;
+    private Scanner scanner;
     
     public ServerFacade() {
         this.port = 8080;
@@ -26,12 +27,12 @@ public class ServerFacade {
     public void run() {
         System.out.println("♕  Welcome to CS 240 Chess. Type \"help\" to get started.");
 
-        Scanner scanner = new Scanner(System.in);
-        preLoginLoop(scanner);
+        scanner = new Scanner(System.in);
+        preLoginLoop();
         scanner.close();
     }
 
-    private void preLoginLoop(Scanner scanner) {
+    private void preLoginLoop() {
         boolean running = true;
         
         while (running) {
@@ -51,10 +52,10 @@ public class ServerFacade {
                     running = printQuitLoggedOut();
                     break;
                 case "login":
-                    printLoginLoggedOut(inputTokens, scanner);
+                    printLoginLoggedOut(inputTokens);
                     break;
                 case "register":
-                    printRegisterLoggedOut(inputTokens, scanner);
+                    printRegisterLoggedOut(inputTokens);
                     break;
                 default:
                     System.out.println("Please enter a valid command. Type \"help\" for more information.");
@@ -92,7 +93,7 @@ public class ServerFacade {
         return false;
     }
 
-    private void printLoginLoggedOut(List<String> inputTokens, Scanner scanner) {
+    private void printLoginLoggedOut(List<String> inputTokens) {
         // Check command args
         if (inputTokens.size() != 3) {
             System.out.println("Proper usage of this command is:" +
@@ -113,13 +114,13 @@ public class ServerFacade {
             sessionToken = auth.authToken;
             displayName = auth.username;
             System.out.println("Successfully logged in!");
-            postLoginLoop(scanner);
+            postLoginLoop();
         } catch (Exception e) {
             System.out.println("Could not log in. Please try again.");
         }
     }
 
-    private void printRegisterLoggedOut(List<String> inputTokens, Scanner scanner) {
+    private void printRegisterLoggedOut(List<String> inputTokens) {
         // Check command args
         if (inputTokens.size() != 4) {
             System.out.println("Proper usage of this command is:" +
@@ -141,13 +142,13 @@ public class ServerFacade {
             sessionToken = auth.authToken;
             displayName = auth.username;
             System.out.println("Successfully registered!");
-            postLoginLoop(scanner);
+            postLoginLoop();
         } catch (Exception e) {
             System.out.println("Could not register. Please try again.");
         }
     }
 
-    private void postLoginLoop(Scanner scanner) {
+    private void postLoginLoop() {
         boolean running = true;
         
         while (running) {
@@ -279,7 +280,7 @@ public class ServerFacade {
         int gameID;
         try {
             gameID = Integer.parseInt(inputTokens.get(1));
-        } catch (ClassCastException e) {
+        } catch (Exception e) {
             System.out.println("Error: ID must be a number.");
             return;
         }
@@ -289,16 +290,20 @@ public class ServerFacade {
             color = inputTokens.get(2).toUpperCase();
         } catch (IndexOutOfBoundsException e) {}
 
-        // Join game
+        // Join game http
         try {
             FacadeFactory.clientJoin(sessionToken, gameID, color, port);
         } catch (Exception e) {
             System.out.println("Could not join game. Please try again.");
         }
 
-        // Draw boards -- change in phase 6
-        FacadeFactory.renderChessBoard(true);
-        FacadeFactory.renderChessBoard(false);
+        // Join game ws
+        try {
+            WebSocketFacade client = new WebSocketFacade(port);
+            client.run(scanner, sessionToken, gameID, color, displayName);
+        } catch (Exception e) {
+            System.out.println("Something went wrong in-game. Please try again.");
+        }
     }
 
     private void printQuitLoggedIn() {

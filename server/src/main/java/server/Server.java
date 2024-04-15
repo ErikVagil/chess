@@ -7,7 +7,7 @@ import com.google.gson.*;
 
 import spark.Request;
 import spark.Spark;
-
+import webSocketMessages.serverMessages.ErrorMessage;
 import webSocketMessages.userCommands.*;
 import webSocketMessages.userCommands.UserGameCommand.CommandType;
 
@@ -74,7 +74,9 @@ public class Server {
                 UserCommandHandler.handleResign(session, resignCommand);
                 break;
             default:
-                throw new IllegalArgumentException("Incoming message does not inherit from UserGameCommand");
+                ErrorMessage errorMessage = new ErrorMessage("Invalid command");
+                String errorString = new Gson().toJson(errorMessage);
+                session.getRemote().sendString(errorString);
         }
     }
 }

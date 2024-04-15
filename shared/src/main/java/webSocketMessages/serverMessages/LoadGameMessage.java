@@ -1,14 +1,16 @@
 package webSocketMessages.serverMessages;
 
-public class LoadGameMessage<T> extends ServerMessage {
-    private final T game;
+import chess.ChessGame;
 
-    public LoadGameMessage(T game) {
+public class LoadGameMessage extends ServerMessage {
+    private final ChessGame game;
+
+    public LoadGameMessage(ChessGame game) {
         super(ServerMessageType.LOAD_GAME);
         this.game = game;
     }
 
-    public T getGame() {
+    public ChessGame getGame() {
         return game;
     }
 }

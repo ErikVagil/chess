@@ -205,8 +205,23 @@ public class ChessGame {
 
         // King has no valid moves
         ChessPosition kingPosition = this.findKingPosition(this.board, teamColor);
-        if (this.validMoves(kingPosition).size() == 0) return true;
-        else return false;
+        if (this.validMoves(kingPosition).size() != 0) return false;
+        
+        // Can other pieces defend?
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPosition currentPosition = new ChessPosition(row, col);
+                ChessPiece currentPiece = this.board.getPiece(currentPosition);
+                if (currentPiece == null || 
+                    currentPiece.getTeamColor() != teamColor) {
+                    continue;
+                }
+
+                // See if the piece has any valid moves
+                if (validMoves(currentPosition).size() != 0) return false;
+            }
+        }
+        return true;
     }
 
     /**

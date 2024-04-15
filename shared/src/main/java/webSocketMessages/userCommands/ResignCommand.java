@@ -5,7 +5,7 @@ public class ResignCommand extends UserGameCommand {
 
     public ResignCommand(String authToken, int gameID) {
         super(authToken);
-        super.commandType = CommandType.JOIN_OBSERVER;
+        super.commandType = CommandType.RESIGN;
         this.gameID = gameID;
     }
 
